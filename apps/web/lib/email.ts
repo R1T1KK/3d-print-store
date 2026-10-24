@@ -1,8 +1,15 @@
 import nodemailer from "nodemailer";
+import type { OtpPurpose } from "@/lib/otp-store";
 
-interface SendOtpEmailOptions {
+export interface SendOtpEmailOptions {
   to: string;
   otp: string;
+  purpose?: OtpPurpose;
+}
+
+export interface SendOtpEmailResult {
+  success: boolean;
+  error?: string;
 }
 
 /**
@@ -27,21 +34,95 @@ export function getMailTransporter() {
 }
 
 /**
- * Sends a high-contrast, premium 6-digit OTP verification email directly to Gmail.
+ * Dispatches an email via Resend HTTP API if RESEND_API_KEY or EMAIL_API_KEY is configured.
  */
-export async function sendOtpEmail({ to, otp }: SendOtpEmailOptions): Promise<{ success: boolean; error?: string }> {
-  const transporter = getMailTransporter();
+async function sendViaResend({
+  to,
+  subject,
+  html,
+  text,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}): Promise<SendOtpEmailResult> {
+  const apiKey = process.env.RESEND_API_KEY || process.env.EMAIL_API_KEY;
+  if (!apiKey) {
+    return { success: false, error: "Resend API key not configured." };
+  }
 
-  if (!transporter) {
+  const fromEmail = process.env.RESEND_FROM_EMAIL || "Fabric3D <onboarding@resend.dev>";
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [to],
+        subject,
+        html,
+        text,
+      }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const errMsg = (data && data.message) || response.statusText || "Resend API request failed";
+      return { success: false, error: `Resend delivery failed: ${errMsg}` };
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown Resend error";
+    return { success: false, error: `Resend network error: ${message}` };
+  }
+}
+
+/**
+ * Sends a real, high-contrast 6-digit OTP verification email directly to the recipient's Gmail inbox.
+ * Never leaks the OTP to console or mock responses. Only returns success when the email service confirms delivery.
+ */
+export async function sendOtpEmail({
+  to,
+  otp,
+  purpose = "register",
+}: SendOtpEmailOptions): Promise<SendOtpEmailResult> {
+  const gmailTransporter = getMailTransporter();
+  const hasResend = Boolean(process.env.RESEND_API_KEY || process.env.EMAIL_API_KEY);
+
+  // If neither Gmail SMTP nor Resend credentials are configured
+  if (!gmailTransporter && !hasResend) {
     return {
       success: false,
-      error: "GMAIL_USER and GMAIL_APP_PASSWORD are not configured in environment variables.",
+      error:
+        "Email delivery service is not configured. Please add GMAIL_USER and GMAIL_APP_PASSWORD to apps/web/.env.local (or configure RESEND_API_KEY).",
     };
   }
 
-  const senderEmail = process.env.GMAIL_USER;
+  let title = "Verify Your Email";
+  let subtitle = "Use the following 6-digit verification code to complete your registration. This code expires in 5 minutes.";
+  let subjectPrefix = "verification code";
 
-  const htmlContent = `
+  if (purpose === "login") {
+    title = "Sign In to Your Account";
+    subtitle = "Use the following 6-digit one-time code to authenticate your account. This code expires in 5 minutes. Never share this code.";
+    subjectPrefix = "login code";
+  } else if (purpose === "reset-password") {
+    title = "Reset Your Password";
+    subtitle = "We received a request to update your account credentials. Enter the 6-digit code below to set your new password. This code expires in 5 minutes.";
+    subjectPrefix = "password reset code";
+  }
+
+  const subject = `${otp} is your FABRIC3D ${subjectPrefix}`;
+  const text = `Your FABRIC3D ${subjectPrefix} is: ${otp}. It expires in 5 minutes.`;
+
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -66,7 +147,7 @@ export async function sendOtpEmail({ to, otp }: SendOtpEmailOptions): Promise<{ 
           <tr>
             <td style="padding-bottom: 12px;">
               <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">
-                Verify Your Email
+                ${title}
               </h1>
             </td>
           </tr>
@@ -74,7 +155,7 @@ export async function sendOtpEmail({ to, otp }: SendOtpEmailOptions): Promise<{ 
           <!-- Description -->
           <tr>
             <td style="padding-bottom: 24px; color: #a1a1aa; font-size: 14px; line-height: 1.5;">
-              Use the following 6-digit verification code to complete your registration. This code expires in 10 minutes.
+              ${subtitle}
             </td>
           </tr>
 
@@ -90,7 +171,7 @@ export async function sendOtpEmail({ to, otp }: SendOtpEmailOptions): Promise<{ 
           <!-- Security note -->
           <tr>
             <td style="border-top: 1px solid #27272a; padding-top: 20px; font-size: 12px; color: #71717a; line-height: 1.5;">
-              If you didn't request this verification code, you can safely ignore this email.
+              If you didn't request this code, you can safely disregard this email. Your FABRIC3D account remains protected.
             </td>
           </tr>
         </table>
@@ -101,19 +182,33 @@ export async function sendOtpEmail({ to, otp }: SendOtpEmailOptions): Promise<{ 
 </html>
   `;
 
-  try {
-    await transporter.sendMail({
-      from: `"FABRIC3D" <${senderEmail}>`,
-      to,
-      subject: `${otp} is your FABRIC3D verification code`,
-      text: `Your FABRIC3D verification code is: ${otp}. It expires in 10 minutes.`,
-      html: htmlContent,
-    });
+  // 1. Try Gmail SMTP if transporter is available
+  if (gmailTransporter) {
+    try {
+      const senderEmail = process.env.GMAIL_USER;
+      await gmailTransporter.sendMail({
+        from: `"FABRIC3D" <${senderEmail}>`,
+        to,
+        subject,
+        text,
+        html,
+      });
 
-    return { success: true };
-  } catch (err: unknown) {
-    console.error("Failed to send email via Gmail SMTP:", err);
-    const message = err instanceof Error ? err.message : "Unknown SMTP error";
-    return { success: false, error: message };
+      return { success: true };
+    } catch (err: unknown) {
+      console.error("Gmail SMTP error:", err);
+      const message = err instanceof Error ? err.message : "SMTP transport failure";
+      return { success: false, error: `Gmail SMTP delivery failed: ${message}` };
+    }
   }
+
+  // 2. Try Resend if configured
+  if (hasResend) {
+    return await sendViaResend({ to, subject, html, text });
+  }
+
+  return {
+    success: false,
+    error: "No active email transport available. Please check environment variables.",
+  };
 }

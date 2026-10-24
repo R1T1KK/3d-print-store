@@ -1,8 +1,8 @@
 # 3D Print Store — Project Progress & TODO Tracker
 
 > **Source of Truth**: [SPEC.md](file:///c:/Users/abhay%20mishra/Downloads/3D_website/SPEC.md) & [IMPLEMENTATION_PLAN.md](file:///c:/Users/abhay%20mishra/Downloads/3D_website/IMPLEMENTATION_PLAN.md)  
-> **Last Updated**: 2026-10-23  
-> **Overall Progress**: **~35% Completed**
+> **Last Updated**: 2026-10-24  
+> **Overall Progress**: **~40% Completed**
 
 ---
 
@@ -10,7 +10,7 @@
 
 ```
 M0: Setup & Foundation         [██████████] 100% (Complete)
-M1: Storefront & 3D Catalog    [████████░░]  85% (Auth & Middleware Complete)
+M1: Storefront & 3D Catalog    [█████████░]  90% (Auth, Gmail OTP, & Middleware Complete)
 M2: Custom Upload & Quoting    [████░░░░░░]  40% (Client 3D Sync & Slicing Done)
 M3: Checkout & Razorpay        [░░░░░░░░░░]   0% (Pending)
 M4: Admin Dashboard            [░░░░░░░░░░]   0% (Pending)
@@ -47,10 +47,11 @@ M6: Deployment & Launch        [░░░░░░░░░░]   0% (Pending)
   - [x] Slide-over cart panel with quantity increment/decrement and item removal.
   - [x] Dynamic subtotal and tax calculation in INR.
   - [x] Free shipping progress bar (unlocked at ₹999+).
-- [x] **Supabase Auth Integration**:
-  - [x] Registration page (`/register`) with name, email, password strength meter, confirmation, and email verification prompt.
-  - [x] Sign-in page (`/login`) with error sanitization, show/hide password, and remember-me option.
-  - [x] Credential recovery pages: `/forgot-password` and `/reset-password`.
+- [x] **Supabase Auth & Gmail OTP Integration**:
+  - [x] Registration page (`/register`) with inline 6-digit OTP verification, password strength meter, and confirmed email account creation.
+  - [x] Sign-in page (`/login`) with Password and One-Time Code (OTP) passwordless sign-in tabs.
+  - [x] Credential recovery pages: `/forgot-password` with 6-digit OTP password reset and `/reset-password`.
+  - [x] Nodemailer Gmail SMTP production delivery with 5-minute expiry, 60s cooldown, and 5-attempt brute-force protection.
   - [x] Next.js auth callback handler (`/auth/callback`) with code exchange and Prisma user synchronization.
   - [x] Customer account portal (`/account`) with editable name/phone/address, order history, and custom 3D model status.
   - [x] Real sign-out action clearing Supabase cookies and returning to home.

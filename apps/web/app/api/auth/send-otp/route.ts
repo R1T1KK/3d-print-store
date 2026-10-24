@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isValidEmail } from "@/lib/auth-validators";
-import { generate6DigitOtp, saveOtp } from "@/lib/otp-store";
+import { generate6DigitOtp, saveOtp, canSendOtp, clearOtp, type OtpPurpose } from "@/lib/otp-store";
 import { sendOtpEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +11,8 @@ export async function POST(request: NextRequest) {
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const name = typeof body.name === "string" ? body.name.trim() : undefined;
     const password = typeof body.password === "string" ? body.password : undefined;
+    const purpose: OtpPurpose =
+      body.purpose === "login" || body.purpose === "reset-password" ? body.purpose : "register";
 
     if (!email || !isValidEmail(email)) {
       return NextResponse.json(
@@ -19,47 +21,67 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Generate strictly 6-digit numeric code
-    const otp = generate6DigitOtp();
-
-    // 2. Save in OTP store with 10-minute expiry
-    saveOtp(email, otp, { name, password });
-
-    // 3. Send email to Gmail via Gmail SMTP Nodemailer
-    const emailResult = await sendOtpEmail({
-      to: email,
-      otp,
-    });
-
-    if (!emailResult.success) {
-      console.warn("Gmail SMTP delivery warning:", emailResult.error);
-
-      // Check if credentials are missing
-      if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-        return NextResponse.json(
-          {
-            error: "Gmail SMTP is not configured yet. Please add GMAIL_USER and GMAIL_APP_PASSWORD to apps/web/.env.local to deliver OTPs to your Gmail inbox.",
-            missingConfig: true,
-          },
-          { status: 503 }
-        );
-      }
-
+    // 1. Enforce 60-second rate-limiting cooldown per email address
+    const rateCheck = canSendOtp(email);
+    if (!rateCheck.allowed) {
       return NextResponse.json(
-        { error: `Failed to deliver email to ${email}: ${emailResult.error}` },
-        { status: 500 }
+        {
+          error: `Please wait ${rateCheck.waitSeconds}s before requesting another verification code.`,
+          cooldown: rateCheck.waitSeconds,
+        },
+        { status: 429 }
       );
     }
 
+    // 2. Generate strictly 6-digit numeric code securely on backend
+    const otp = generate6DigitOtp();
+
+    // 3. Save in OTP store with 5-minute expiry
+    saveOtp(email, otp, { purpose, name, password });
+
+    // 4. Dispatch email directly to recipient inbox via backend email service
+    const emailResult = await sendOtpEmail({
+      to: email,
+      otp,
+      purpose,
+    });
+
+    // 5. If email delivery fails, display a proper error instead of pretending it was sent
+    if (!emailResult.success) {
+      // Clear unsent OTP so user is not penalized by cooldown on failed delivery
+      clearOtp(email);
+
+      const isConfigError = emailResult.error?.toLowerCase().includes("not configured");
+      const statusCode = isConfigError ? 503 : 500;
+
+      return NextResponse.json(
+        {
+          error:
+            emailResult.error ||
+            `Failed to deliver email to ${email}. Please check backend email service credentials.`,
+        },
+        { status: statusCode }
+      );
+    }
+
+    const purposeLabels = {
+      register: "registration",
+      login: "login",
+      "reset-password": "password reset",
+    };
+
+    // 6. Return confirmation ONLY after backend email service confirms delivery.
+    // The OTP is NEVER returned in the API response.
     return NextResponse.json({
       success: true,
-      message: `A 6-digit verification code has been sent directly to ${email}.`,
+      message: `A 6-digit ${purposeLabels[purpose]} code has been sent directly to ${email}.`,
       email,
+      cooldown: 60,
     });
   } catch (err: unknown) {
     console.error("send-otp unhandled error:", err);
     return NextResponse.json(
-      { error: "An unexpected error occurred while sending the OTP code." },
+      { error: "An unexpected error occurred while sending the verification code." },
       { status: 500 }
     );
   }
