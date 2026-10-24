@@ -10,7 +10,7 @@
 
 ```
 M0: Setup & Foundation         [██████████] 100% (Complete)
-M1: Storefront & 3D Catalog    [██████░░░░]  60% (Interactive Storefront Done)
+M1: Storefront & 3D Catalog    [████████░░]  85% (Auth & Middleware Complete)
 M2: Custom Upload & Quoting    [████░░░░░░]  40% (Client 3D Sync & Slicing Done)
 M3: Checkout & Razorpay        [░░░░░░░░░░]   0% (Pending)
 M4: Admin Dashboard            [░░░░░░░░░░]   0% (Pending)
@@ -47,9 +47,18 @@ M6: Deployment & Launch        [░░░░░░░░░░]   0% (Pending)
   - [x] Slide-over cart panel with quantity increment/decrement and item removal.
   - [x] Dynamic subtotal and tax calculation in INR.
   - [x] Free shipping progress bar (unlocked at ₹999+).
+- [x] **Supabase Auth Integration**:
+  - [x] Registration page (`/register`) with name, email, password strength meter, confirmation, and email verification prompt.
+  - [x] Sign-in page (`/login`) with error sanitization, show/hide password, and remember-me option.
+  - [x] Credential recovery pages: `/forgot-password` and `/reset-password`.
+  - [x] Next.js auth callback handler (`/auth/callback`) with code exchange and Prisma user synchronization.
+  - [x] Customer account portal (`/account`) with editable name/phone/address, order history, and custom 3D model status.
+  - [x] Real sign-out action clearing Supabase cookies and returning to home.
+- [x] **Route Protection Middleware (`middleware.ts`)**:
+  - [x] Protected customer routes (`/account/*`) redirecting unauthenticated users to `/login`.
+  - [x] Protected admin routes (`/admin/*`) requiring `ADMIN` role.
+  - [x] Dynamic Navbar showing live session avatar and dropdown menu.
 - [ ] **Pending for M1**:
-  - [ ] **Supabase Auth Integration**: Sign-up, login, logout pages (`/login`, `/register`).
-  - [ ] **Route Middleware**: Protect customer profile routes (`/account/*`) and admin routes (`/admin/*`).
   - [ ] **Product Detail Page**: Dynamic route `/catalog/[slug]` for deep-linkable product pages.
 
 ---
