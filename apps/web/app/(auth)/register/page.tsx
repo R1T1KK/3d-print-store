@@ -40,7 +40,6 @@ function RegisterForm() {
   const [verificationSent, setVerificationSent] = useState(false);
   const [isOtpMode, setIsOtpMode] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
-  const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
 
   // OTP Verification state
   const [otpCode, setOtpCode] = useState("");
@@ -76,7 +75,7 @@ function RegisterForm() {
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, password }),
+        body: JSON.stringify({ email: cleanEmail, name: fullName, password }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -85,9 +84,6 @@ function RegisterForm() {
         return;
       }
 
-      if (data.devOtp) {
-        setDevOtpCode(data.devOtp);
-      }
       setIsOtpMode(true);
       setResendCooldown(60);
     } catch {
@@ -148,6 +144,7 @@ function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: cleanEmail,
+          name: cleanName,
           password,
         }),
       });
@@ -159,9 +156,6 @@ function RegisterForm() {
         return;
       }
 
-      if (data.devOtp) {
-        setDevOtpCode(data.devOtp);
-      }
       setVerificationSent(true);
       setResendCooldown(60);
       setLoading(false);
@@ -177,8 +171,8 @@ function RegisterForm() {
     setOtpSuccess(null);
 
     const cleanOtp = targetOtp.trim();
-    if (!cleanOtp) {
-      setOtpError("Please enter the 6-digit verification code.");
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      setOtpError("Please enter the complete 6-digit verification code.");
       return;
     }
 
@@ -191,49 +185,41 @@ function RegisterForm() {
     setVerifyingOtp(true);
 
     try {
-      const supabase = createClient();
-
-      // First try 'signup' verification type
-      let { data, error } = await supabase.auth.verifyOtp({
-        email: cleanEmail,
-        token: cleanOtp,
-        type: "signup",
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: cleanEmail,
+          code: cleanOtp,
+          password,
+          name: fullName,
+        }),
       });
 
-      // Fallback to 'email' type if 'signup' type returns error
-      if (error) {
-        const retry = await supabase.auth.verifyOtp({
-          email: cleanEmail,
-          token: cleanOtp,
-          type: "email",
-        });
-        if (!retry.error) {
-          data = retry.data;
-          error = null;
-        }
-      }
+      const data = await res.json();
 
-      if (error) {
-        setOtpError(error.message || "Invalid or expired verification code. Please check and try again.");
+      if (!res.ok) {
+        setOtpError(data.error || "Invalid or expired verification code.");
         setVerifyingOtp(false);
         return;
       }
 
-      if (data?.session || data?.user) {
-        setOtpSuccess("Email verified successfully! Setting up your workspace...");
-        // Synchronize Supabase user into PostgreSQL Prisma database
-        await fetch("/api/account/profile").catch(() => {});
+      setOtpSuccess("Email verified successfully! Setting up your workspace...");
 
-        setTimeout(() => {
-          router.push(redirectPath.startsWith("/") ? redirectPath : "/account");
-          router.refresh();
-        }, 700);
-      } else {
-        setOtpSuccess("Email verified! Redirecting to sign in...");
-        setTimeout(() => {
-          router.push(`/login?verified=true${redirectPath !== "/account" ? `&redirect=${encodeURIComponent(redirectPath)}` : ""}`);
-        }, 1000);
+      // Establish client authentication session with Supabase
+      const supabase = createClient();
+      const loginPass = data.verifiedPassword || password;
+      if (loginPass) {
+        await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password: loginPass,
+        });
       }
+
+      setTimeout(() => {
+        router.push(redirectPath.startsWith("/") ? redirectPath : "/account");
+        router.refresh();
+      }, 700);
     } catch (err: unknown) {
       console.error("OTP verification error:", err);
       setOtpError("An unexpected error occurred while verifying OTP. Please try again.");
@@ -258,6 +244,7 @@ function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim(),
+          name: fullName,
           password,
         }),
       });
@@ -266,10 +253,7 @@ function RegisterForm() {
       if (!res.ok) {
         setOtpError(data.error || "Failed to resend code.");
       } else {
-        if (data.devOtp) {
-          setDevOtpCode(data.devOtp);
-        }
-        setOtpSuccess("A new verification code has been dispatched to your email!");
+        setOtpSuccess("A new 6-digit verification code has been dispatched to your Gmail!");
         setResendCooldown(60);
       }
     } catch {
@@ -313,34 +297,10 @@ function RegisterForm() {
               </div>
               <h2 className="text-xl font-bold text-zinc-50">Verify Email Address</h2>
               <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mx-auto">
-                Enter the verification code sent to{" "}
+                Enter the 6-digit verification code sent to{" "}
                 <span className="font-mono text-cyan-400 font-semibold">{email || "your email"}</span>.
               </p>
             </div>
-
-            {/* Dev Mode Instant Auto-Fill Helper */}
-            {devOtpCode && (
-              <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between gap-3 text-xs text-cyan-300 animate-in fade-in">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-sm bg-cyan-950/80 px-2.5 py-0.5 rounded border border-cyan-500/40 text-cyan-200 tracking-wider">
-                    {devOtpCode}
-                  </span>
-                  <span className="text-[11px] text-zinc-400">
-                    (Instant Dev Code)
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOtpCode(devOtpCode);
-                    executeVerification(devOtpCode);
-                  }}
-                  className="px-2.5 py-1 rounded-md bg-cyan-500 text-zinc-950 font-bold text-[11px] hover:bg-cyan-400 transition-colors cursor-pointer"
-                >
-                  Auto-Fill & Verify
-                </button>
-              </div>
-            )}
 
             {/* Error & Success Alerts */}
             {otpError && (
@@ -382,10 +342,10 @@ function RegisterForm() {
 
               <div className="space-y-2 text-center">
                 <label className="block text-xs font-semibold text-zinc-300">
-                  Verification Code
+                  6-Digit Verification Code
                 </label>
                 <OtpInput
-                  length={devOtpCode ? devOtpCode.length : (otpCode.length > 6 ? 8 : 6)}
+                  length={6}
                   value={otpCode}
                   onChange={setOtpCode}
                   onComplete={(code) => executeVerification(code)}
@@ -393,13 +353,13 @@ function RegisterForm() {
                   autoFocus={true}
                 />
                 <p className="text-[11px] text-zinc-500">
-                  Paste the verification code or type directly. Auto-verifies on completion.
+                  Enter the 6-digit code received on your Gmail. Auto-verifies on completion.
                 </p>
               </div>
 
               <button
                 type="submit"
-                disabled={verifyingOtp || otpCode.trim().length < 6}
+                disabled={verifyingOtp || otpCode.trim().length !== 6}
                 className="w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-sm shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
                 {verifyingOtp ? (
