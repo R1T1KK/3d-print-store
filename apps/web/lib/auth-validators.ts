@@ -87,10 +87,10 @@ export function sanitizeCustomerProfileUpdate(body: Record<string, unknown>): {
 }
 
 export function isValidOtpCode(otp: string): boolean {
-  return /^[0-9a-zA-Z]{6}$/.test(otp.trim());
+  return /^[0-9a-zA-Z]{6,8}$/.test(otp.trim());
 }
 
 export function sanitizeOtpCode(otp: string): string {
-  return otp.replace(/[^0-9a-zA-Z]/g, "").toUpperCase().slice(0, 6);
+  return otp.replace(/[^0-9a-zA-Z]/g, "").toUpperCase().slice(0, 8);
 }
 

@@ -39,6 +39,8 @@ function RegisterForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [verificationSent, setVerificationSent] = useState(false);
   const [isOtpMode, setIsOtpMode] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
 
   // OTP Verification state
   const [otpCode, setOtpCode] = useState("");
@@ -55,6 +57,45 @@ function RegisterForm() {
     }, 1000);
     return () => clearInterval(timer);
   }, [resendCooldown]);
+
+  const handleSendEmailOtp = async () => {
+    setErrorMessage(null);
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setErrorMessage("Please enter your email address to receive a verification OTP.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setErrorMessage("Please enter a valid email address.");
+      return;
+    }
+
+    setSendingOtp(true);
+    try {
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMessage(data.error || "Failed to send verification code.");
+        setSendingOtp(false);
+        return;
+      }
+
+      if (data.devOtp) {
+        setDevOtpCode(data.devOtp);
+      }
+      setIsOtpMode(true);
+      setResendCooldown(60);
+    } catch {
+      setErrorMessage("Network error while dispatching OTP. Please check your connection.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,51 +143,28 @@ function RegisterForm() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const emailRedirectTo = `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
-
-      const { data, error } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-        options: {
-          data: {
-            name: cleanName,
-            full_name: cleanName,
-          },
-          emailRedirectTo,
-        },
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: cleanEmail,
+          password,
+        }),
       });
+      const data = await res.json();
 
-      if (error) {
-        if (
-          error.message.toLowerCase().includes("already registered") ||
-          error.message.toLowerCase().includes("user already exists")
-        ) {
-          setErrorMessage(
-            "An account with this email address already exists. Please sign in instead."
-          );
-        } else if (error.message.toLowerCase().includes("rate limit")) {
-          setErrorMessage(
-            "Email rate limit exceeded (Supabase default free SMTP allows 3 emails/hour). If you already received a 6-digit code, enter it below. To disable rate limits in development, turn off 'Confirm email' in Supabase Dashboard → Authentication → Providers → Email."
-          );
-        } else {
-          setErrorMessage(error.message || "Failed to create account. Please try again.");
-        }
+      if (!res.ok) {
+        setErrorMessage(data.error || "Failed to create account. Please try again.");
         setLoading(false);
         return;
       }
 
-      // Check if session was granted immediately or confirmation email required
-      if (data.session) {
-        // Immediate session without confirmation
-        router.push(redirectPath.startsWith("/") ? redirectPath : "/account");
-        router.refresh();
-      } else {
-        // Email confirmation is required by Supabase Auth settings
-        setVerificationSent(true);
-        setLoading(false);
+      if (data.devOtp) {
+        setDevOtpCode(data.devOtp);
       }
+      setVerificationSent(true);
+      setResendCooldown(60);
+      setLoading(false);
     } catch (err: unknown) {
       console.error("Registration error:", err);
       setErrorMessage("An unexpected network error occurred. Please check your connection.");
@@ -235,20 +253,23 @@ function RegisterForm() {
     setResending(true);
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email: email.trim(),
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
       });
+      const data = await res.json();
 
-      if (error) {
-        if (error.message.toLowerCase().includes("rate limit")) {
-          setOtpError("Email rate limit reached (max 3/hour on free Supabase SMTP). Please wait a few minutes or check your inbox for an earlier code.");
-        } else {
-          setOtpError(error.message || "Failed to resend code.");
-        }
+      if (!res.ok) {
+        setOtpError(data.error || "Failed to resend code.");
       } else {
-        setOtpSuccess("A new 6-digit verification code has been dispatched to your email!");
+        if (data.devOtp) {
+          setDevOtpCode(data.devOtp);
+        }
+        setOtpSuccess("A new verification code has been dispatched to your email!");
         setResendCooldown(60);
       }
     } catch {
@@ -292,10 +313,34 @@ function RegisterForm() {
               </div>
               <h2 className="text-xl font-bold text-zinc-50">Verify Email Address</h2>
               <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mx-auto">
-                Enter the 6-digit verification code sent to{" "}
+                Enter the verification code sent to{" "}
                 <span className="font-mono text-cyan-400 font-semibold">{email || "your email"}</span>.
               </p>
             </div>
+
+            {/* Dev Mode Instant Auto-Fill Helper */}
+            {devOtpCode && (
+              <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between gap-3 text-xs text-cyan-300 animate-in fade-in">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-sm bg-cyan-950/80 px-2.5 py-0.5 rounded border border-cyan-500/40 text-cyan-200 tracking-wider">
+                    {devOtpCode}
+                  </span>
+                  <span className="text-[11px] text-zinc-400">
+                    (Instant Dev Code)
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpCode(devOtpCode);
+                    executeVerification(devOtpCode);
+                  }}
+                  className="px-2.5 py-1 rounded-md bg-cyan-500 text-zinc-950 font-bold text-[11px] hover:bg-cyan-400 transition-colors cursor-pointer"
+                >
+                  Auto-Fill & Verify
+                </button>
+              </div>
+            )}
 
             {/* Error & Success Alerts */}
             {otpError && (
@@ -337,10 +382,10 @@ function RegisterForm() {
 
               <div className="space-y-2 text-center">
                 <label className="block text-xs font-semibold text-zinc-300">
-                  6-Digit Verification Code
+                  Verification Code
                 </label>
                 <OtpInput
-                  length={6}
+                  length={devOtpCode ? devOtpCode.length : (otpCode.length > 6 ? 8 : 6)}
                   value={otpCode}
                   onChange={setOtpCode}
                   onComplete={(code) => executeVerification(code)}
@@ -348,7 +393,7 @@ function RegisterForm() {
                   autoFocus={true}
                 />
                 <p className="text-[11px] text-zinc-500">
-                  Paste the full 6-digit code or type directly. Auto-verifies on completion.
+                  Paste the verification code or type directly. Auto-verifies on completion.
                 </p>
               </div>
 
@@ -460,16 +505,6 @@ function RegisterForm() {
               </div>
             )}
 
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => setIsOtpMode(true)}
-                className="text-xs text-cyan-400 hover:text-cyan-300 font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
-              >
-                <KeyRound className="w-3.5 h-3.5" /> Already have a verification code? Verify with OTP
-              </button>
-            </div>
-
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Full Name */}
               <div className="space-y-1">
@@ -488,7 +523,7 @@ function RegisterForm() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Arjun Sharma"
-                    disabled={loading}
+                    disabled={loading || sendingOtp}
                     className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
                   />
                 </div>
@@ -511,9 +546,25 @@ function RegisterForm() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="arjun@example.com"
-                    disabled={loading}
+                    disabled={loading || sendingOtp}
                     className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
                   />
+                </div>
+
+                {/* Placed directly below Email Address */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[11px] text-zinc-500">
+                    Already have or need an OTP code?
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleSendEmailOtp}
+                    disabled={sendingOtp || loading}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
+                  >
+                    <KeyRound className="w-3.5 h-3.5" />
+                    <span>{sendingOtp ? "Sending OTP..." : "Verify with OTP →"}</span>
+                  </button>
                 </div>
               </div>
 

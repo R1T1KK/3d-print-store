@@ -80,14 +80,15 @@ console.log("✓ Role elevation attempt prevented. Sanitization verified.");
 // 5. OTP Code Validation & Sanitization Tests
 console.log("\nTest 5: OTP Code Validation & Sanitization...");
 assert.strictEqual(isValidOtpCode("123456"), true, "Valid 6-digit numeric OTP");
+assert.strictEqual(isValidOtpCode("12345678"), true, "Valid 8-digit numeric OTP");
 assert.strictEqual(isValidOtpCode("A1B2C3"), true, "Valid 6-char alphanumeric OTP");
 assert.strictEqual(isValidOtpCode("12345"), false, "Too short (< 6 digits)");
-assert.strictEqual(isValidOtpCode("1234567"), false, "Too long (> 6 digits)");
+assert.strictEqual(isValidOtpCode("123456789"), false, "Too long (> 8 digits)");
 assert.strictEqual(isValidOtpCode("12 34 56"), false, "Contains internal whitespace");
 assert.strictEqual(isValidOtpCode("1234!@"), false, "Contains special characters");
 
 assert.strictEqual(sanitizeOtpCode(" 123-456 "), "123456", "Strips dashes and spaces");
-assert.strictEqual(sanitizeOtpCode("abc456extra"), "ABC456", "Upper-cases and truncates to 6");
+assert.strictEqual(sanitizeOtpCode("abc45678extra"), "ABC45678", "Upper-cases and truncates to 8");
 console.log("✓ OTP format checks and sanitization verified.");
 
 console.log("\n=======================================================");
