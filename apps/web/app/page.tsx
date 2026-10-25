@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import InstantQuoteCalculator from "@/components/custom/InstantQuoteCalculator";
@@ -31,22 +32,67 @@ const ThreeViewer = dynamic(() => import("@/components/viewer/ThreeViewer"), {
 });
 
 export default function Home() {
+  const router = useRouter();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
       id: "demo-item-1",
-      title: "Helical Planetary Gear Assembly",
-      subtitle: "Material: PLA Tough (Prusa Orange)",
-      price: 849,
+      productId: "test-print-1",
+      title: "Razorpay ₹1 Test Verification Print",
+      subtitle: "Material: PLA Tough • Instant Gateway Test Token",
+      price: 1,
       quantity: 1,
       material: "PLA Tough",
       type: "catalog",
     },
   ]);
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+
+  // Load persisted cart on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem("fabric3d_cart");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const hasTestItem = parsed.some(
+              (item: CartItem) => item.productId === "test-print-1" || item.price === 1
+            );
+            if (!hasTestItem) {
+              parsed.unshift({
+                id: "demo-item-1",
+                productId: "test-print-1",
+                title: "Razorpay ₹1 Test Verification Print",
+                subtitle: "Material: PLA Tough • Instant Gateway Test Token",
+                price: 1,
+                quantity: 1,
+                material: "PLA Tough",
+                type: "catalog",
+              });
+            }
+            setCartItems(parsed);
+            return;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Save cart changes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("fabric3d_cart", JSON.stringify(cartItems));
+    } catch {
+      // ignore
+    }
+  }, [cartItems]);
 
   // Synchronized 3D Model State across Simulator & Custom Quote Calculator
   const [activeModel, setActiveModel] = useState<ParsedModelResult | null>(null);
+  const [serverModelId, setServerModelId] = useState<string | null>(null);
   const [modelLoading, setModelLoading] = useState(false);
   const [modelError, setModelError] = useState<string | null>(null);
 
@@ -72,6 +118,48 @@ export default function Home() {
       if (viewerSectionRef.current) {
         viewerSectionRef.current.scrollIntoView({ behavior: "smooth" });
       }
+
+      // Background persistence to private Supabase storage and server mesh analyzer
+      (async () => {
+        try {
+          const signRes = await fetch("/api/uploads/sign", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileName: file.name,
+              fileSize: file.size,
+              mimeType: file.type || "application/octet-stream",
+            }),
+          });
+          if (!signRes.ok) return;
+
+          const { signedUploadUrl, fileKey } = await signRes.json();
+          const uploadRes = await fetch(signedUploadUrl, {
+            method: "PUT",
+            body: file,
+            headers: {
+              "Content-Type": file.type || "application/octet-stream",
+            },
+          });
+          if (!uploadRes.ok) return;
+
+          const modelRes = await fetch("/api/models", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileKey,
+              fileName: file.name,
+              fileSize: file.size,
+            }),
+          });
+          if (modelRes.ok) {
+            const { model } = await modelRes.json();
+            setServerModelId(model.id);
+          }
+        } catch (uploadErr) {
+          console.warn("Storage upload notice:", uploadErr);
+        }
+      })();
     } catch (err: unknown) {
       console.error("Error parsing 3D file:", err);
       const msg =
@@ -87,6 +175,7 @@ export default function Home() {
 
   const handleClearCustomModel = useCallback(() => {
     setActiveModel(null);
+    setServerModelId(null);
     setModelError(null);
   }, []);
 
@@ -102,6 +191,7 @@ export default function Home() {
         ...prev,
         {
           id: product.id,
+          productId: product.id,
           title: product.name,
           subtitle: `Material: ${product.materials[0]}`,
           price: product.price,
@@ -114,7 +204,7 @@ export default function Home() {
     setIsCartOpen(true);
   };
 
-  const handleAddCustomQuote = (customItem: {
+  const handleAddCustomQuote = async (customItem: {
     id: string;
     title: string;
     material: string;
@@ -125,13 +215,42 @@ export default function Home() {
     price: number;
     volumeCm3: number;
   }) => {
+    let persistentQuoteId: string | undefined = undefined;
+    let finalUnitPrice = customItem.price / customItem.quantity;
+
+    // If server model is registered, calculate and persist deterministic quote in database
+    if (serverModelId) {
+      try {
+        const quoteRes = await fetch("/api/quotes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            modelId: serverModelId,
+            material: customItem.material,
+            color: customItem.color,
+            infillPct: customItem.infill,
+            layerHeight: parseFloat(customItem.layerHeight),
+            quantity: customItem.quantity,
+          }),
+        });
+        if (quoteRes.ok) {
+          const { quote, breakdown } = await quoteRes.json();
+          persistentQuoteId = quote.id;
+          finalUnitPrice = breakdown.unitPriceInr;
+        }
+      } catch (err) {
+        console.warn("Server quote creation notice:", err);
+      }
+    }
+
     setCartItems((prev) => [
       ...prev,
       {
         id: customItem.id,
+        quoteId: persistentQuoteId,
         title: customItem.title,
         subtitle: `${customItem.material} (${customItem.color}) • ${customItem.infill}% Infill • ${customItem.layerHeight}`,
-        price: customItem.price / customItem.quantity,
+        price: finalUnitPrice,
         quantity: customItem.quantity,
         material: customItem.material,
         type: "custom",
@@ -160,10 +279,13 @@ export default function Home() {
 
   const handleCheckout = () => {
     setIsCartOpen(false);
-    setCheckoutModalOpen(true);
+    try {
+      localStorage.setItem("fabric3d_cart", JSON.stringify(cartItems));
+    } catch {
+      // ignore
+    }
+    router.push("/checkout");
   };
-
-  const cartTotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
@@ -376,63 +498,6 @@ export default function Home() {
         onRemoveItem={handleRemoveItem}
         onCheckout={handleCheckout}
       />
-
-      {/* Razorpay Checkout Demo Modal */}
-      {checkoutModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                  ₹
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-zinc-100">Razorpay Hosted Modal</h4>
-                  <p className="text-[10px] text-zinc-400 font-mono">Milestone M3 Test Gateway</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setCheckoutModalOpen(false)}
-                className="text-zinc-500 hover:text-white text-xs font-mono"
-              >
-                ✕ Close
-              </button>
-            </div>
-
-            <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 space-y-2 text-xs">
-              <div className="flex justify-between text-zinc-400">
-                <span>Payable Amount:</span>
-                <span className="font-mono font-bold text-cyan-400 text-sm">
-                  ₹{cartTotal.toLocaleString("en-IN")}
-                </span>
-              </div>
-              <div className="flex justify-between text-zinc-400">
-                <span>Accepted Payment Methods:</span>
-                <span className="text-zinc-200">UPI, Cards, NetBanking</span>
-              </div>
-              <div className="flex justify-between text-zinc-400">
-                <span>Webhook Integration:</span>
-                <span className="font-mono text-emerald-400">HMAC-SHA256 Idempotent</span>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-300">
-              ℹ️ In Milestone M3, this seamlessly triggers the live Razorpay checkout dialog with server-side price verification and webhook order fulfillment.
-            </div>
-
-            <button
-              onClick={() => {
-                setCheckoutModalOpen(false);
-                alert("Simulated Payment Success! Order status updated to PAID in DB.");
-                setCartItems([]);
-              }}
-              className="w-full py-3 rounded-xl font-bold bg-cyan-500 hover:bg-cyan-400 text-zinc-950 transition-all text-xs"
-            >
-              Simulate ₹{cartTotal.toLocaleString("en-IN")} Test Payment
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Global Footer */}
       <Footer />

@@ -459,9 +459,13 @@ export default function AccountPage() {
                   >
                     <div>
                       <div className="flex items-center gap-2.5">
-                        <span className="font-mono text-xs font-bold text-zinc-200">
+                        <Link
+                          href={`/order-success/${order.id}`}
+                          className="font-mono text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1"
+                        >
                           #{order.id.slice(0, 8)}
-                        </span>
+                          <ArrowRight className="w-3 h-3 text-cyan-500" />
+                        </Link>
                         <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
                           {order.status}
                         </span>

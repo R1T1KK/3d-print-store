@@ -7,6 +7,7 @@ import {
   RotateCw,
   Box,
   Maximize2,
+  Minimize2,
   Sparkles,
   Layers,
   AlertTriangle,
@@ -89,24 +90,85 @@ export default function ThreeViewer({
   onClearCustomModel,
   onTriggerUploadClick,
 }: ThreeViewerProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedPreset, setSelectedPreset] = useState<ModelPreset>(PRESETS[0]);
   const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0]);
   const [isWireframe, setIsWireframe] = useState(false);
   const [isAutoRotate, setIsAutoRotate] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Three.js internal references
   const sceneRef = useRef<THREE.Scene | null>(null);
   const meshGroupRef = useRef<THREE.Group | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const autoRotateRef = useRef<boolean>(isAutoRotate);
 
-  // 1. Initialize Scene, Camera, Bed & Controls
+  // Sync auto-spin state to controls and render loop without re-initializing the scene
+  useEffect(() => {
+    autoRotateRef.current = isAutoRotate;
+    if (controlsRef.current) {
+      controlsRef.current.autoRotate = isAutoRotate;
+    }
+  }, [isAutoRotate]);
+
+  // Fullscreen toggle handler (HTML5 Fullscreen API + CSS fallback)
+  const toggleFullscreen = async () => {
+    if (!wrapperRef.current) return;
+
+    if (!document.fullscreenElement && !isFullscreen) {
+      try {
+        if (wrapperRef.current.requestFullscreen) {
+          await wrapperRef.current.requestFullscreen();
+        }
+      } catch (err) {
+        console.warn("Fullscreen request failed, using CSS fallback:", err);
+      }
+      setIsFullscreen(true);
+    } else {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        try {
+          await document.exitFullscreen();
+        } catch (err) {
+          console.warn("Exit fullscreen failed:", err);
+        }
+      }
+      setIsFullscreen(false);
+    }
+  };
+
+  // Listen for native fullscreen changes & Escape key
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isNativeFs = Boolean(document.fullscreenElement);
+      setIsFullscreen(isNativeFs);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        setIsFullscreen(false);
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isFullscreen]);
+
+  // 1. Initialize Scene, Camera, Bed & Controls (runs ONCE on mount)
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const width = container.clientWidth || 300;
+    const height = container.clientHeight || 300;
 
     const scene = new THREE.Scene();
     sceneRef.current = scene;
@@ -117,6 +179,7 @@ export default function ThreeViewer({
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    rendererRef.current = renderer;
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
@@ -134,6 +197,8 @@ export default function ThreeViewer({
     controls.minDistance = 30;
     controls.maxDistance = 450;
     controls.target.set(0, 25, 0);
+    controls.autoRotate = autoRotateRef.current;
+    controls.autoRotateSpeed = 1.6;
     controlsRef.current = controls;
 
     // Lighting
@@ -200,7 +265,7 @@ export default function ThreeViewer({
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       if (controlsRef.current) {
-        controlsRef.current.autoRotate = isAutoRotate;
+        controlsRef.current.autoRotate = autoRotateRef.current;
         controlsRef.current.autoRotateSpeed = 1.6;
         controlsRef.current.update();
       }
@@ -209,16 +274,24 @@ export default function ThreeViewer({
     animate();
 
     const handleResize = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
       const w = containerRef.current.clientWidth;
       const h = containerRef.current.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      if (w === 0 || h === 0) return;
+      cameraRef.current.aspect = w / h;
+      cameraRef.current.updateProjectionMatrix();
+      rendererRef.current.setSize(w, h);
     };
+
+    // ResizeObserver ensures instantaneous, pixel-perfect canvas sizing across fullscreen & layout shifts
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container);
     window.addEventListener("resize", handleResize);
 
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
       if (meshGroupRef.current) {
@@ -231,7 +304,7 @@ export default function ThreeViewer({
       outlineMat.dispose();
       renderer.dispose();
     };
-  }, [isAutoRotate]);
+  }, []);
 
   // 2. Render Active Model (Custom Uploaded vs Preset Sample)
   useEffect(() => {
@@ -373,7 +446,14 @@ export default function ThreeViewer({
   const isBedFit = activeModel ? activeModel.fitsBed : true;
 
   return (
-    <div className="relative w-full h-[580px] lg:h-[680px] rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 shadow-2xl flex flex-col">
+    <div
+      ref={wrapperRef}
+      className={`relative flex flex-col transition-all duration-300 ${
+        isFullscreen
+          ? "fixed inset-0 z-50 w-screen h-screen rounded-none bg-zinc-950"
+          : "w-full h-[580px] lg:h-[680px] rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 shadow-2xl"
+      }`}
+    >
       {/* Loading Overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-30 bg-zinc-950/80 backdrop-blur-sm flex flex-col items-center justify-center">
@@ -405,53 +485,66 @@ export default function ThreeViewer({
           </span>
         </div>
 
-        {/* Model Selector / Custom Status Pill */}
-        <div className="flex items-center gap-1.5 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800">
-          {activeModel ? (
-            <div className="flex items-center gap-2 px-2 py-0.5">
-              <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
-                <FileCode className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Custom: {activeModel.fileName.slice(0, 16)}...</span>
-              </span>
-              <button
-                onClick={onClearCustomModel}
-                title="Reset to Sample Models"
-                className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center gap-1 transition-colors"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Reset to Sample</span>
-              </button>
-            </div>
-          ) : (
-            PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => setSelectedPreset(preset)}
-                className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
-                  selectedPreset.id === preset.id
-                    ? "bg-zinc-100 text-zinc-950 shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
-                }`}
-              >
-                {preset.name.split(" ")[0]}
-              </button>
-            ))
-          )}
-
-          {onTriggerUploadClick && (
+        {/* Fullscreen Exit Pill or Model Selector / Custom Status Pill */}
+        <div className="flex items-center gap-2">
+          {isFullscreen && (
             <button
-              onClick={onTriggerUploadClick}
-              className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-all"
+              onClick={toggleFullscreen}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-zinc-700 shadow-lg cursor-pointer transition-colors"
             >
-              <UploadCloud className="w-3 h-3" />
-              <span>Upload Model</span>
+              <Minimize2 className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Exit Fullscreen</span>
+              <kbd className="text-[10px] bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 font-mono">ESC</kbd>
             </button>
           )}
+
+          <div className="flex items-center gap-1.5 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800">
+            {activeModel ? (
+              <div className="flex items-center gap-2 px-2 py-0.5">
+                <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                  <FileCode className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Custom: {activeModel.fileName.slice(0, 16)}...</span>
+                </span>
+                <button
+                  onClick={onClearCustomModel}
+                  title="Reset to Sample Models"
+                  className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Reset to Sample</span>
+                </button>
+              </div>
+            ) : (
+              PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => setSelectedPreset(preset)}
+                  className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                    selectedPreset.id === preset.id
+                      ? "bg-zinc-100 text-zinc-950 shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                  }`}
+                >
+                  {preset.name.split(" ")[0]}
+                </button>
+              ))
+            )}
+
+            {onTriggerUploadClick && (
+              <button
+                onClick={onTriggerUploadClick}
+                className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-all"
+              >
+                <UploadCloud className="w-3 h-3" />
+                <span>Upload Model</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* 3D WebGL Canvas Viewport */}
-      <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+      <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing flex-1" />
 
       {/* Floating HUD Badges & Diagnostics */}
       <div className="absolute top-18 left-4 z-10 space-y-2 pointer-events-none">
@@ -544,7 +637,7 @@ export default function ThreeViewer({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsWireframe(!isWireframe)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
               isWireframe
                 ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
                 : "bg-zinc-800/80 border-zinc-700/60 text-zinc-300 hover:bg-zinc-800"
@@ -556,7 +649,7 @@ export default function ThreeViewer({
 
           <button
             onClick={() => setIsAutoRotate(!isAutoRotate)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
               isAutoRotate
                 ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
                 : "bg-zinc-800/80 border-zinc-700/60 text-zinc-300 hover:bg-zinc-800"
@@ -569,9 +662,32 @@ export default function ThreeViewer({
           <button
             onClick={resetCamera}
             title="Reset Camera View"
-            className="p-1.5 rounded-lg text-xs bg-zinc-800/80 border border-zinc-700/60 text-zinc-300 hover:bg-zinc-800 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs bg-zinc-800/80 border border-zinc-700/60 text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
           >
-            <Maximize2 className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Reset View</span>
+          </button>
+
+          <button
+            onClick={toggleFullscreen}
+            title={isFullscreen ? "Exit Fullscreen (Esc)" : "Enter Fullscreen"}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+              isFullscreen
+                ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30"
+                : "bg-zinc-800/80 border-zinc-700/60 text-zinc-300 hover:bg-zinc-800"
+            }`}
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Exit Fullscreen</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Fullscreen</span>
+              </>
+            )}
           </button>
         </div>
       </div>

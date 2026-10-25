@@ -23,7 +23,7 @@ import {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/account";
+  const redirectPath = searchParams.get("redirect") || "/";
   const verifiedNotice = searchParams.get("verified") === "true";
   const resetNotice = searchParams.get("reset") === "true";
 

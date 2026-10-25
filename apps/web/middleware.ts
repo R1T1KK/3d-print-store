@@ -44,7 +44,16 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // 1. Protected customer routes: /account/*
+  // 1. Root storefront route: require login so unauthenticated visitors go to login/signup
+  if (pathname === "/") {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // 2. Protected customer routes: /account/*
   if (pathname.startsWith("/account")) {
     if (!user) {
       const url = request.nextUrl.clone();
@@ -54,7 +63,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 2. Protected admin routes: /admin/*
+  // 3. Protected admin routes: /admin/*
   if (pathname.startsWith("/admin")) {
     if (!user) {
       const url = request.nextUrl.clone();
@@ -71,15 +80,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Guest-only auth routes: /login, /register, /forgot-password
-  // If user is already authenticated, redirect them to account or intended destination
+  // 4. Guest-only auth routes: /login, /register, /forgot-password
+  // If user is already authenticated, redirect them to the storefront or intended destination
   if (
     user &&
     (pathname === "/login" || pathname === "/register" || pathname === "/forgot-password")
   ) {
-    const redirectParam = request.nextUrl.searchParams.get("redirect") || "/account";
+    const redirectParam = request.nextUrl.searchParams.get("redirect") || "/";
     const targetUrl = request.nextUrl.clone();
-    targetUrl.pathname = redirectParam.startsWith("/") ? redirectParam : "/account";
+    targetUrl.pathname = redirectParam.startsWith("/") ? redirectParam : "/";
     targetUrl.searchParams.delete("redirect");
     return NextResponse.redirect(targetUrl);
   }

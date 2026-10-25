@@ -5,6 +5,8 @@ import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Zap } from "lucide-rea
 
 export interface CartItem {
   id: string;
+  productId?: string;
+  quoteId?: string;
   title: string;
   subtitle?: string;
   price: number;
@@ -34,9 +36,10 @@ export default function CartDrawer({
 
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const freeShippingThreshold = 999;
-  const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
-  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
-  const shippingFee = subtotal >= freeShippingThreshold || items.length === 0 ? 0 : 79;
+  const isTestCheckout = items.some((i) => i.productId === "test-print-1" || i.price === 1);
+  const progressToFreeShipping = isTestCheckout ? 100 : Math.min(100, (subtotal / freeShippingThreshold) * 100);
+  const remainingForFreeShipping = isTestCheckout ? 0 : Math.max(0, freeShippingThreshold - subtotal);
+  const shippingFee = isTestCheckout || subtotal >= freeShippingThreshold || items.length === 0 ? 0 : 79;
   const total = subtotal + shippingFee;
 
   return (

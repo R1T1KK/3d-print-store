@@ -42,7 +42,16 @@ export async function syncUserProfile(supabaseUser: SupabaseAuthUser) {
     });
 
     if (existingByEmail) {
-      // Keep existing record and return
+      if (existingByEmail.id !== supabaseUser.id) {
+        // Update user ID to match Supabase UUID so foreign keys on supabaseUser.id succeed
+        await prisma.$executeRawUnsafe(
+          'UPDATE "User" SET id = $1, name = COALESCE($2, name) WHERE id = $3',
+          supabaseUser.id,
+          displayName,
+          existingByEmail.id
+        );
+        return await prisma.user.findUnique({ where: { id: supabaseUser.id } });
+      }
       return existingByEmail;
     }
 

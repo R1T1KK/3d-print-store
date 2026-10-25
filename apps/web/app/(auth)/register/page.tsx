@@ -25,7 +25,7 @@ import {
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/account";
+  const redirectPath = searchParams.get("redirect") || "/";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
