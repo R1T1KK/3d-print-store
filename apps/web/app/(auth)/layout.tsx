@@ -6,8 +6,9 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col justify-between selection:bg-emerald-500 selection:text-black">
       {children}
     </div>
   );
 }
+

@@ -119,7 +119,7 @@ export default function OrderSuccessPage({
   const addr = order.addressJson;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col font-sans selection:bg-emerald-500 selection:text-black">
       <Navbar
         cartCount={0}
         onOpenCart={() => {}}
@@ -128,16 +128,16 @@ export default function OrderSuccessPage({
         onScrollToViewer={() => router.push("/")}
       />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-8">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-6 sm:px-10 py-16 sm:py-24 space-y-8">
         {/* Status Header Banner */}
-        <div className="p-8 rounded-3xl bg-zinc-900/60 border border-zinc-800 text-center space-y-4 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="p-8 sm:p-12 rounded-3xl bg-[#0a0a0a]/90 border border-white/10 text-center space-y-5 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-36 bg-emerald-950/20 rounded-full blur-3xl pointer-events-none" />
 
           <div
             className={`w-16 h-16 rounded-2xl mx-auto flex items-center justify-center shadow-lg ${
               isPaid
-                ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-emerald-500/10"
-                : "bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 shadow-cyan-500/10"
+                ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-emerald-500/10"
+                : "bg-white/5 border border-white/10 text-white/70"
             }`}
           >
             {isPaid ? <CheckCircle2 className="w-8 h-8" /> : <Clock className="w-8 h-8" />}
@@ -145,31 +145,31 @@ export default function OrderSuccessPage({
 
           <div>
             <span
-              className={`inline-block px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider mb-2 ${
+              className={`inline-block px-3.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider mb-2 ${
                 isPaid
                   ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                  : "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                  : "bg-white/10 text-white/80 border border-white/15"
               }`}
             >
               Order Status: {order.status}
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight font-heading">
               {isPaid ? "Payment Confirmed!" : "Order Placed Successfully"}
             </h1>
-            <p className="text-xs text-zinc-400 max-w-md mx-auto mt-2 leading-relaxed">
+            <p className="text-xs sm:text-sm text-white/50 max-w-md mx-auto mt-2 leading-relaxed font-sans">
               {isPaid
                 ? "Your commercial 3D manufacturing order has been verified. Production queue scheduling initiated."
                 : "Your order is pending payment confirmation. Please complete payment or view details below."}
             </p>
           </div>
 
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-xs font-mono text-zinc-300">
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-[#0e0e0e] border border-white/10 text-xs font-mono text-white/80">
             <span>Order ID:</span>
-            <span className="font-bold text-cyan-400">#{order.id}</span>
+            <span className="font-bold text-emerald-400">#{order.id}</span>
             {order.paymentRef && (
               <>
-                <span className="text-zinc-600">•</span>
-                <span className="text-zinc-500">Ref: {order.paymentRef.slice(0, 16)}</span>
+                <span className="text-white/20">•</span>
+                <span className="text-white/40">Ref: {order.paymentRef.slice(0, 16)}</span>
               </>
             )}
           </div>
@@ -178,59 +178,59 @@ export default function OrderSuccessPage({
         {/* Order Details Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Items & Payment Summary */}
-          <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-              <Package className="w-4 h-4 text-cyan-400" /> Manufacturing Items
+          <div className="p-6 sm:p-7 rounded-3xl bg-[#0a0a0a]/90 border border-white/10 space-y-4 backdrop-blur-xl">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/60 flex items-center gap-2 font-heading">
+              <Package className="w-4 h-4 text-emerald-400" /> Manufacturing Items
             </h3>
 
             <div className="space-y-2.5">
               {order.items.map((item, idx) => (
                 <div
                   key={item.id}
-                  className="p-3 rounded-xl bg-zinc-950 border border-zinc-800/80 flex items-center justify-between text-xs"
+                  className="p-3.5 rounded-2xl bg-[#0e0e0e] border border-white/10 flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
                       {item.quoteId ? (
-                        <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                        <Layers className="w-3.5 h-3.5 text-emerald-400" />
                       ) : (
-                        <Box className="w-3.5 h-3.5 text-zinc-400" />
+                        <Box className="w-3.5 h-3.5 text-white/50" />
                       )}
                     </div>
                     <div>
-                      <div className="font-bold text-zinc-200">
+                      <div className="font-semibold text-white font-heading">
                         {item.quoteId ? "Custom 3D Print Part" : "Catalog Component"} #{idx + 1}
                       </div>
-                      <div className="text-[10px] text-zinc-500 font-mono">
+                      <div className="text-[10px] text-white/40 font-mono">
                         Qty: {item.quantity} × ₹{(item.unitPrice / 100).toLocaleString("en-IN")}
                       </div>
                     </div>
                   </div>
 
-                  <span className="font-mono font-bold text-zinc-200">
+                  <span className="font-mono font-bold text-white">
                     ₹{((item.unitPrice * item.quantity) / 100).toLocaleString("en-IN")}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs">
-              <span className="text-zinc-400">Total Paid:</span>
-              <span className="font-mono text-base font-extrabold text-cyan-400">
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+              <span className="text-white/60">Total Paid:</span>
+              <span className="font-mono text-base font-bold text-emerald-400">
                 ₹{(order.total / 100).toLocaleString("en-IN")}
               </span>
             </div>
           </div>
 
           {/* Delivery Snapshot */}
-          <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-cyan-400" /> Shipping Destination
+          <div className="p-6 sm:p-7 rounded-3xl bg-[#0a0a0a]/90 border border-white/10 space-y-4 backdrop-blur-xl">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/60 flex items-center gap-2 font-heading">
+              <MapPin className="w-4 h-4 text-emerald-400" /> Shipping Destination
             </h3>
 
-            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-2 text-xs">
-              <div className="font-bold text-zinc-200">{addr?.fullName}</div>
-              <div className="text-zinc-400 leading-relaxed">
+            <div className="p-4 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-2 text-xs">
+              <div className="font-semibold text-white">{addr?.fullName}</div>
+              <div className="text-white/50 leading-relaxed font-sans">
                 {addr?.line1}
                 {addr?.line2 ? `, ${addr.line2}` : ""}
                 <br />
@@ -238,11 +238,11 @@ export default function OrderSuccessPage({
                 <br />
                 {addr?.country || "India"}
               </div>
-              <div className="text-zinc-400 pt-1 font-mono text-[11px]">Contact: {addr?.phone}</div>
+              <div className="text-white/40 pt-1 font-mono text-[11px]">Contact: {addr?.phone}</div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-zinc-500 pt-1">
-              <Truck className="w-3.5 h-3.5 text-cyan-400" />
+            <div className="flex items-center gap-2 text-xs text-white/40 pt-1">
+              <Truck className="w-3.5 h-3.5 text-emerald-400" />
               <span>Standard delivery dispatch within 48h.</span>
             </div>
           </div>
@@ -252,7 +252,7 @@ export default function OrderSuccessPage({
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
           <Link
             href="/account"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-cyan-500/20"
+            className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.25)] hover:scale-[1.01]"
           >
             <span>View in Account History</span>
             <ArrowRight className="w-4 h-4" />
@@ -260,7 +260,7 @@ export default function OrderSuccessPage({
 
           <Link
             href="/"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all"
+            className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/15 text-white/80 hover:text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <Box className="w-4 h-4" />
             <span>Continue Shopping</span>
@@ -272,3 +272,4 @@ export default function OrderSuccessPage({
     </div>
   );
 }
+

@@ -54,18 +54,18 @@ export default function AdminSidebar({ userEmail, userName }: AdminSidebarProps)
   };
 
   return (
-    <aside className="w-64 bg-zinc-950 border-r border-zinc-800/80 flex flex-col justify-between shrink-0 select-none">
+    <aside className="w-64 bg-[#050505] border-r border-white/5 flex flex-col justify-between shrink-0 select-none">
       <div>
         {/* Brand Header */}
-        <div className="p-5 border-b border-zinc-800/80">
+        <div className="p-5 border-b border-white/5">
           <Link href="/admin" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:border-cyan-400 transition-colors">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:border-emerald-400 transition-colors">
               <Box className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-sm font-bold tracking-wider text-zinc-100 flex items-center gap-1.5">
+              <div className="text-sm font-bold tracking-wider text-white flex items-center gap-1.5 font-heading">
                 <span>FABRIC3D</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/60 font-mono">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 font-mono">
                   ADMIN
                 </span>
               </div>
@@ -87,17 +87,17 @@ export default function AdminSidebar({ userEmail, userName }: AdminSidebarProps)
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
                     active
-                      ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-sm shadow-cyan-950/20"
-                      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent"
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-950/20 font-bold"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-transparent"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${active ? "text-cyan-400" : "text-zinc-500"}`} />
+                    <Icon className={`w-4 h-4 ${active ? "text-emerald-400" : "text-zinc-500"}`} />
                     <span>{item.label}</span>
                   </div>
-                  {active && <ChevronRight className="w-3.5 h-3.5 text-cyan-400/70" />}
+                  {active && <ChevronRight className="w-3.5 h-3.5 text-emerald-400/70" />}
                 </Link>
               );
             })}
@@ -106,10 +106,10 @@ export default function AdminSidebar({ userEmail, userName }: AdminSidebarProps)
       </div>
 
       {/* Footer Profile & Storefront Return */}
-      <div className="p-4 border-t border-zinc-800/80 space-y-3">
+      <div className="p-4 border-t border-white/5 space-y-3">
         <Link
           href="/"
-          className="flex items-center justify-between px-3 py-2 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-zinc-800/50 transition-colors"
+          className="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-white/5 transition-colors"
         >
           <span className="flex items-center gap-2">
             <ExternalLink className="w-3.5 h-3.5 text-zinc-500" />
@@ -118,8 +118,8 @@ export default function AdminSidebar({ userEmail, userName }: AdminSidebarProps)
           <span className="text-[10px] text-zinc-500 font-mono">View ↗</span>
         </Link>
 
-        <div className="px-3 py-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/80 flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-cyan-950/60 border border-cyan-800/80 flex items-center justify-center text-cyan-400 shrink-0">
+        <div className="px-3 py-2.5 rounded-xl bg-zinc-900/60 border border-white/5 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full bg-emerald-950/60 border border-emerald-800/80 flex items-center justify-center text-emerald-400 shrink-0">
             <ShieldCheck className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0 flex-1">

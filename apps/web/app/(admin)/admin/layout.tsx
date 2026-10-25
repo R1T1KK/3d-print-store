@@ -28,11 +28,11 @@ export default async function AdminLayout({
   // 2. If authenticated but role is NOT ADMIN, render secure 403 screen
   if (!session.authorized) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center text-zinc-100 font-sans">
-        <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-6 shadow-xl shadow-rose-950/20">
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-6 text-center text-zinc-100 font-sans">
+        <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-6 shadow-xl shadow-rose-950/20">
           <ShieldAlert className="w-8 h-8" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-100 mb-2">
+        <h1 className="text-2xl font-bold tracking-tight text-white font-heading mb-2">
           Administrator Privileges Required
         </h1>
         <p className="text-sm text-zinc-400 max-w-md mb-6 leading-relaxed">
@@ -42,21 +42,21 @@ export default async function AdminLayout({
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-200 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-medium bg-white/5 border border-white/10 hover:bg-white/10 text-zinc-200 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Return to Storefront</span>
           </Link>
           <Link
             href="/login?redirect=/admin"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium bg-cyan-500 hover:bg-cyan-400 text-zinc-950 transition-colors font-semibold"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold bg-white hover:bg-zinc-200 text-zinc-950 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Switch Account</span>
           </Link>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-zinc-900 text-[11px] font-mono text-zinc-600">
+        <div className="mt-8 pt-6 border-t border-white/5 text-[11px] font-mono text-zinc-600">
           Security Event · IP & Session Logged
         </div>
       </div>
@@ -65,7 +65,7 @@ export default async function AdminLayout({
 
   // 3. Authorized Administrator View
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex font-sans antialiased">
+    <div className="min-h-screen bg-[#050505] text-zinc-100 flex font-sans antialiased">
       {/* Sidebar */}
       <AdminSidebar
         userEmail={session.user.email}

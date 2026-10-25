@@ -47,89 +47,94 @@ export default function CartDrawer({
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity animate-in fade-in"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in"
       />
 
       {/* Drawer Panel */}
-      <div className="relative w-full max-w-md bg-zinc-950 border-l border-zinc-800 p-6 flex flex-col justify-between shadow-2xl z-10 overflow-y-auto animate-in slide-in-from-right duration-200">
+      <div className="relative w-full max-w-md bg-[#080808]/95 border-l border-white/10 p-6 sm:p-8 flex flex-col justify-between shadow-[0_0_50px_rgba(0,0,0,0.8)] z-10 overflow-y-auto backdrop-blur-2xl animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div>
-          <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-lg font-bold text-zinc-100">Your Print Cart</h3>
-              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300">
+          <div className="flex items-center justify-between pb-5 border-b border-white/10">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-white/5 border border-white/15 flex items-center justify-center">
+                <ShoppingBag className="w-4 h-4 text-emerald-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white font-heading">Your Print Cart</h3>
+              <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/60">
                 {items.length} {items.length === 1 ? "item" : "items"}
               </span>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              className="p-2 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Free Shipping Progress Bar */}
-          <div className="mt-4 p-3 rounded-xl bg-zinc-900/80 border border-zinc-800/80 text-xs">
-            <div className="flex justify-between font-medium text-zinc-300 mb-1.5">
+          <div className="mt-5 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 text-xs">
+            <div className="flex justify-between font-medium text-white/70 mb-2">
               {remainingForFreeShipping > 0 ? (
                 <span>
-                  Add <span className="font-bold text-cyan-400">₹{remainingForFreeShipping}</span> for FREE Pan-India Shipping
+                  Add <span className="font-bold text-emerald-400">₹{remainingForFreeShipping}</span> for FREE Pan-India Shipping
                 </span>
               ) : (
-                <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                  🎉 You unlocked FREE Pan-India Shipping!
+                <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  FREE Pan-India Courier Unlocked
                 </span>
               )}
             </div>
-            <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-300"
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300"
                 style={{ width: `${progressToFreeShipping}%` }}
               />
             </div>
           </div>
 
           {/* Items List */}
-          <div className="mt-6 space-y-3 max-h-[48vh] overflow-y-auto pr-1">
+          <div className="mt-6 space-y-3 max-h-[46vh] overflow-y-auto pr-1">
             {items.length === 0 ? (
-              <div className="text-center py-12 text-zinc-500 text-xs space-y-2">
-                <ShoppingBag className="w-10 h-10 mx-auto text-zinc-700" />
-                <p>Your cart is empty.</p>
-                <p className="text-zinc-600">Explore catalog or upload a custom STL to get started!</p>
+              <div className="text-center py-16 text-white/40 text-xs space-y-3">
+                <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-white/30">
+                  <ShoppingBag className="w-6 h-6" />
+                </div>
+                <p className="font-medium text-white/70">Your cart is empty.</p>
+                <p className="text-white/40">Choose from ready catalog or upload your custom STL.</p>
               </div>
             ) : (
               items.map((item) => (
                 <div
                   key={item.id}
-                  className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex items-start justify-between gap-3"
+                  className="p-4 rounded-2xl bg-[#0e0e0e] border border-white/10 flex items-start justify-between gap-3"
                 >
                   <div className="flex-1">
-                    <div className="text-xs font-semibold text-zinc-100 line-clamp-1">{item.title}</div>
+                    <div className="text-xs font-semibold text-white line-clamp-1">{item.title}</div>
                     {item.material && (
-                      <div className="text-[11px] font-mono text-cyan-400 mt-0.5">
-                        Material: {item.material}
+                      <div className="text-[11px] font-mono text-emerald-400 mt-0.5">
+                        {item.material}
                       </div>
                     )}
-                    <div className="text-xs font-mono font-bold text-zinc-200 mt-1">
+                    <div className="text-xs font-mono font-bold text-white/90 mt-1.5">
                       ₹{(item.price * item.quantity).toLocaleString("en-IN")}
                     </div>
 
                     {/* Quantity Selector */}
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2 mt-2.5">
                       <button
                         onClick={() => onUpdateQuantity(item.id, -1)}
-                        className="w-6 h-6 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center text-xs"
+                        className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 border border-white/15 text-white/80 flex items-center justify-center text-xs transition-colors cursor-pointer"
                       >
                         -
                       </button>
-                      <span className="text-xs font-mono font-bold text-zinc-100 w-4 text-center">
+                      <span className="text-xs font-mono font-bold text-white w-4 text-center">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => onUpdateQuantity(item.id, 1)}
-                        className="w-6 h-6 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center text-xs"
+                        className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 border border-white/15 text-white/80 flex items-center justify-center text-xs transition-colors cursor-pointer"
                       >
                         +
                       </button>
@@ -138,7 +143,7 @@ export default function CartDrawer({
 
                   <button
                     onClick={() => onRemoveItem(item.id)}
-                    className="p-1.5 rounded text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="p-1.5 rounded-full text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -149,40 +154,40 @@ export default function CartDrawer({
         </div>
 
         {/* Footer & Checkout Summary */}
-        <div className="pt-6 border-t border-zinc-800 space-y-3 mt-6">
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between text-zinc-400">
+        <div className="pt-6 border-t border-white/10 space-y-4 mt-6">
+          <div className="space-y-2 text-xs">
+            <div className="flex justify-between text-white/60">
               <span>Subtotal:</span>
-              <span className="font-mono text-zinc-200">₹{subtotal.toLocaleString("en-IN")}</span>
+              <span className="font-mono text-white/90">₹{subtotal.toLocaleString("en-IN")}</span>
             </div>
-            <div className="flex justify-between text-zinc-400">
-              <span>Pan-India Courier:</span>
-              <span className="font-mono text-zinc-200">
-                {shippingFee === 0 ? <span className="text-emerald-400">FREE</span> : `₹${shippingFee}`}
+            <div className="flex justify-between text-white/60">
+              <span>Courier Delivery:</span>
+              <span className="font-mono text-white/90">
+                {shippingFee === 0 ? <span className="text-emerald-400 font-medium">FREE</span> : `₹${shippingFee}`}
               </span>
             </div>
-            <div className="flex justify-between text-sm font-bold text-zinc-100 pt-2 border-t border-zinc-800/80">
-              <span>Total Payable:</span>
-              <span className="font-mono text-cyan-400 text-lg">₹{total.toLocaleString("en-IN")}</span>
+            <div className="flex justify-between text-sm font-semibold text-white pt-2.5 border-t border-white/10">
+              <span className="font-heading">Total:</span>
+              <span className="font-mono text-emerald-400 text-lg font-bold">₹{total.toLocaleString("en-IN")}</span>
             </div>
           </div>
 
           <button
             onClick={onCheckout}
             disabled={items.length === 0}
-            className="w-full py-3.5 px-4 rounded-xl font-bold bg-cyan-500 hover:bg-cyan-400 disabled:bg-zinc-800 disabled:text-zinc-500 text-zinc-950 flex items-center justify-center gap-2 transition-all shadow-lg shadow-cyan-500/20"
+            className="w-full py-3.5 px-6 rounded-full font-semibold bg-emerald-500 hover:bg-emerald-400 disabled:bg-white/5 disabled:text-white/30 text-black flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.25)] hover:scale-[1.01] cursor-pointer"
           >
             <span>Proceed to Razorpay Checkout</span>
             <ArrowRight className="w-4 h-4" />
           </button>
 
-          <div className="flex items-center justify-center gap-3 text-[11px] text-zinc-500">
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> 256-bit Secure
+          <div className="flex items-center justify-center gap-4 text-[11px] text-white/40">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> 256-bit Encrypted
             </span>
             <span>•</span>
-            <span className="flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5 text-cyan-400" /> Dispatch in 48h
+            <span className="flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-emerald-400" /> 48h Pan-India Dispatch
             </span>
           </div>
         </div>
@@ -190,3 +195,4 @@ export default function CartDrawer({
     </div>
   );
 }
+

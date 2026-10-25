@@ -138,8 +138,8 @@ export default function OtpInput({
             aria-label={`Digit ${index + 1} of verification code`}
             className={`w-11 h-14 sm:w-13 sm:h-16 text-center text-xl sm:text-2xl font-mono font-bold rounded-xl transition-all outline-none select-none ${
               isFilled
-                ? "bg-zinc-900 border-2 border-cyan-500/70 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
-                : "bg-zinc-950/80 border border-zinc-800 text-zinc-100 hover:border-zinc-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                ? "bg-zinc-900 border-2 border-emerald-500/70 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                : "bg-zinc-950/80 border border-zinc-800 text-zinc-100 hover:border-zinc-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             } disabled:opacity-40 disabled:cursor-not-allowed`}
           />
         );

@@ -170,32 +170,34 @@ export default function AccountPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center space-y-3 font-mono text-xs">
-        <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#050505] text-zinc-100 flex flex-col items-center justify-center space-y-3 font-mono text-xs">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
         <span className="text-zinc-500">Decrypting account profile...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
+    <div className="min-h-screen bg-[#050505] text-zinc-100 flex flex-col">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 w-full border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="flex items-center gap-2 text-zinc-400 hover:text-cyan-400 transition-colors text-xs font-mono"
+              className="flex items-center gap-2 text-zinc-400 hover:text-emerald-400 transition-colors text-xs font-mono"
             >
               <ArrowLeft className="w-4 h-4" /> Store
             </Link>
-            <div className="h-4 w-px bg-zinc-800" />
+            <div className="h-4 w-px bg-white/10" />
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-zinc-950">
-                <Box className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
               </div>
-              <span className="text-sm font-extrabold tracking-tight text-zinc-100">
-                FABRIC<span className="text-cyan-400">3D</span>
+              <span className="text-sm font-bold tracking-tight text-white font-heading">
+                FABRIC<span className="text-emerald-400">3D</span>
               </span>
             </div>
           </div>
@@ -204,16 +206,16 @@ export default function AccountPage() {
             {data?.user.role === "ADMIN" && (
               <Link
                 href="/admin"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-mono text-xs font-bold transition-all shadow-sm"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-semibold transition-all shadow-sm"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Admin Portal</span>
                 <ArrowRight className="w-3 h-3 ml-0.5" />
               </Link>
             )}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-rose-400 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-rose-400 transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
@@ -226,15 +228,15 @@ export default function AccountPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Administrator Quick-Access Operational Banner */}
         {data?.user.role === "ADMIN" && (
-          <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+          <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 backdrop-blur-md">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-zinc-100">Administrator Privileges Active</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold uppercase">STUDIO ADMIN</span>
+                  <span className="text-xs font-bold text-white font-heading">Administrator Privileges Active</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold uppercase">STUDIO ADMIN</span>
                 </div>
                 <p className="text-xs text-zinc-400 mt-0.5">
                   You have full manufacturing access to custom print job review, 3D WebGL inspection, product catalog CRUD, and order fulfillment tracking.
@@ -244,7 +246,7 @@ export default function AccountPage() {
             <div className="flex items-center gap-2 shrink-0">
               <Link
                 href="/admin"
-                className="px-3.5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-zinc-950 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                className="px-4 py-2 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
               >
                 <span>Open Admin Console</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -254,22 +256,22 @@ export default function AccountPage() {
         )}
 
         {/* User Hero Banner */}
-        <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div className="p-6 rounded-3xl bg-zinc-900/40 border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 backdrop-blur-md">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-zinc-950 font-bold text-xl shadow-lg shadow-cyan-500/20">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-500/20">
               {data?.user?.name ? data.user.name.charAt(0).toUpperCase() : "U"}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-zinc-50">
+                <h1 className="text-xl font-bold text-white font-heading">
                   {data?.user?.name || "Customer Account"}
                 </h1>
                 {data?.user?.emailVerified ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono">
                     <ShieldCheck className="w-3 h-3" /> Verified
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-mono">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-mono">
                     <Clock className="w-3 h-3" /> Pending Verification
                   </span>
                 )}
@@ -279,24 +281,24 @@ export default function AccountPage() {
           </div>
 
           <div className="flex items-center gap-3 text-xs font-mono text-zinc-400">
-            <div className="px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800">
+            <div className="px-3.5 py-2 rounded-xl bg-zinc-950 border border-white/5">
               <span className="text-[10px] text-zinc-500 block uppercase">Orders</span>
-              <span className="font-bold text-zinc-100">{data?.orders?.length || 0}</span>
+              <span className="font-bold text-white">{data?.orders?.length || 0}</span>
             </div>
-            <div className="px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800">
+            <div className="px-3.5 py-2 rounded-xl bg-zinc-950 border border-white/5">
               <span className="text-[10px] text-zinc-500 block uppercase">3D Models</span>
-              <span className="font-bold text-cyan-400">{data?.models?.length || 0}</span>
+              <span className="font-bold text-emerald-400">{data?.models?.length || 0}</span>
             </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-zinc-800 space-x-6 text-xs font-semibold mb-6">
+        <div className="flex border-b border-white/10 space-x-6 text-xs font-semibold mb-6">
           <button
             onClick={() => setActiveTab("profile")}
-            className={`pb-3 transition-colors flex items-center gap-2 border-b-2 ${
+            className={`pb-3 transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               activeTab === "profile"
-                ? "border-cyan-500 text-cyan-400"
+                ? "border-emerald-500 text-emerald-400 font-bold"
                 : "border-transparent text-zinc-400 hover:text-zinc-200"
             }`}
           >
@@ -304,9 +306,9 @@ export default function AccountPage() {
           </button>
           <button
             onClick={() => setActiveTab("orders")}
-            className={`pb-3 transition-colors flex items-center gap-2 border-b-2 ${
+            className={`pb-3 transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               activeTab === "orders"
-                ? "border-cyan-500 text-cyan-400"
+                ? "border-emerald-500 text-emerald-400 font-bold"
                 : "border-transparent text-zinc-400 hover:text-zinc-200"
             }`}
           >
@@ -314,9 +316,9 @@ export default function AccountPage() {
           </button>
           <button
             onClick={() => setActiveTab("jobs")}
-            className={`pb-3 transition-colors flex items-center gap-2 border-b-2 ${
+            className={`pb-3 transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               activeTab === "jobs"
-                ? "border-cyan-500 text-cyan-400"
+                ? "border-emerald-500 text-emerald-400 font-bold"
                 : "border-transparent text-zinc-400 hover:text-zinc-200"
             }`}
           >
@@ -342,103 +344,103 @@ export default function AccountPage() {
 
             <form onSubmit={handleSaveProfile} className="space-y-6">
               {/* Personal Details */}
-              <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-4">
-                <h3 className="text-sm font-bold text-zinc-200 flex items-center gap-2">
-                  <User className="w-4 h-4 text-cyan-400" /> Account Identity
+              <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/10 space-y-4">
+                <h3 className="text-sm font-bold text-white font-heading flex items-center gap-2">
+                  <User className="w-4 h-4 text-emerald-400" /> Account Identity
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-400">Full Name</label>
                     <input
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       placeholder="Your full name"
-                      className="w-full px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-cyan-500 text-xs text-zinc-100 outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/80 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-zinc-100 outline-none transition-all"
                     />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-400">Email Address (Immutable)</label>
                     <input
                       type="email"
                       disabled
                       value={data?.user.email || ""}
-                      className="w-full px-3.5 py-2 rounded-lg bg-zinc-950 border border-zinc-800/60 text-xs text-zinc-500 font-mono outline-none cursor-not-allowed"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-white/5 text-xs text-zinc-500 font-mono outline-none cursor-not-allowed"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Shipping Address */}
-              <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-4">
-                <h3 className="text-sm font-bold text-zinc-200 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-cyan-400" /> Shipping & Delivery Details
+              <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/10 space-y-4">
+                <h3 className="text-sm font-bold text-white font-heading flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-emerald-400" /> Shipping & Delivery Details
                 </h3>
 
                 <div className="space-y-3">
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-400">Street Address</label>
                     <input
                       type="text"
                       value={editLine1}
                       onChange={(e) => setEditLine1(e.target.value)}
                       placeholder="House / Flat / Tech Park / Street"
-                      className="w-full px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-cyan-500 text-xs text-zinc-100 outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/80 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-zinc-100 outline-none transition-all"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-zinc-400">City</label>
                       <input
                         type="text"
                         value={editCity}
                         onChange={(e) => setEditCity(e.target.value)}
                         placeholder="Bengaluru"
-                        className="w-full px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-cyan-500 text-xs text-zinc-100 outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/80 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-zinc-100 outline-none transition-all"
                       />
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-zinc-400">State</label>
                       <input
                         type="text"
                         value={editState}
                         onChange={(e) => setEditState(e.target.value)}
                         placeholder="Karnataka"
-                        className="w-full px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-cyan-500 text-xs text-zinc-100 outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/80 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-zinc-100 outline-none transition-all"
                       />
                     </div>
-                    <div className="space-y-1 col-span-2 sm:col-span-1">
+                    <div className="space-y-1.5 col-span-2 sm:col-span-1">
                       <label className="text-xs font-semibold text-zinc-400">PIN Code</label>
                       <input
                         type="text"
                         value={editPostalCode}
                         onChange={(e) => setEditPostalCode(e.target.value)}
                         placeholder="560001"
-                        className="w-full px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-cyan-500 text-xs text-zinc-100 outline-none font-mono"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/80 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-zinc-100 outline-none font-mono transition-all"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-zinc-400">Contact Phone</label>
                       <input
                         type="tel"
                         value={editPhone}
                         onChange={(e) => setEditPhone(e.target.value)}
                         placeholder="+91 98765 43210"
-                        className="w-full px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-cyan-500 text-xs text-zinc-100 outline-none font-mono"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/80 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-zinc-100 outline-none font-mono transition-all"
                       />
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-zinc-400">Country</label>
                       <input
                         type="text"
                         value={editCountry}
                         onChange={(e) => setEditCountry(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-cyan-500 text-xs text-zinc-100 outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900/80 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-zinc-100 outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -449,7 +451,7 @@ export default function AccountPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold text-xs flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-cyan-500/20"
+                className="px-6 py-3 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-xs flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer shadow-[0_4px_16px_rgba(255,255,255,0.12)] active:scale-[0.98]"
               >
                 {saving ? (
                   <>
@@ -471,15 +473,15 @@ export default function AccountPage() {
         {activeTab === "orders" && (
           <div className="space-y-4">
             {(!data?.orders || data.orders.length === 0) ? (
-              <div className="p-12 rounded-2xl bg-zinc-900/30 border border-zinc-800 text-center space-y-3">
+              <div className="p-12 rounded-3xl bg-zinc-900/30 border border-white/10 text-center space-y-3">
                 <Package className="w-10 h-10 text-zinc-600 mx-auto" />
-                <h3 className="text-sm font-bold text-zinc-300">No Orders Placed Yet</h3>
+                <h3 className="text-sm font-bold text-white font-heading">No Orders Placed Yet</h3>
                 <p className="text-xs text-zinc-500 max-w-sm mx-auto">
                   Browse our ready-to-print mechanical engineering catalog or upload a custom STL.
                 </p>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-semibold transition-all mt-2"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold transition-all mt-2"
                 >
                   Explore Catalog <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
@@ -489,18 +491,18 @@ export default function AccountPage() {
                 {data.orders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    className="p-5 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-emerald-500/30 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                   >
                     <div>
                       <div className="flex items-center gap-2.5">
                         <Link
                           href={`/order-success/${order.id}`}
-                          className="font-mono text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1"
+                          className="font-mono text-xs font-bold text-emerald-400 hover:underline flex items-center gap-1"
                         >
                           #{order.id.slice(0, 8)}
-                          <ArrowRight className="w-3 h-3 text-cyan-500" />
+                          <ArrowRight className="w-3 h-3 text-emerald-400" />
                         </Link>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                           {order.status}
                         </span>
                       </div>
@@ -516,7 +518,7 @@ export default function AccountPage() {
                     </div>
 
                     <div className="text-right">
-                      <span className="font-mono text-sm font-bold text-cyan-400">
+                      <span className="font-mono text-sm font-bold text-emerald-400">
                         ₹{(order.total / 100).toLocaleString("en-IN")}
                       </span>
                     </div>
@@ -531,16 +533,16 @@ export default function AccountPage() {
         {activeTab === "jobs" && (
           <div className="space-y-4">
             {(!data?.models || data.models.length === 0) ? (
-              <div className="p-12 rounded-2xl bg-zinc-900/30 border border-zinc-800 text-center space-y-3">
+              <div className="p-12 rounded-3xl bg-zinc-900/30 border border-white/10 text-center space-y-3">
                 <Layers className="w-10 h-10 text-zinc-600 mx-auto" />
-                <h3 className="text-sm font-bold text-zinc-300">No Custom 3D Models Uploaded</h3>
+                <h3 className="text-sm font-bold text-white font-heading">No Custom 3D Models Uploaded</h3>
                 <p className="text-xs text-zinc-500 max-w-sm mx-auto">
                   Drag and drop your STL, OBJ, or 3MF files onto the simulated print bed to generate
                   instant quotes.
                 </p>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-zinc-950 text-xs font-bold transition-all mt-2"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold transition-all mt-2"
                 >
                   Upload 3D Model <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
@@ -550,7 +552,7 @@ export default function AccountPage() {
                 {data.models.map((model) => (
                   <div
                     key={model.id}
-                    className="p-5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    className="p-5 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-emerald-500/30 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                   >
                     <div>
                       <div className="flex items-center gap-2">
@@ -558,7 +560,7 @@ export default function AccountPage() {
                           {model.fileName}
                         </span>
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                             model.status === "VALID"
                               ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                               : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
@@ -576,10 +578,10 @@ export default function AccountPage() {
                     <div className="text-right">
                       {model.quotes?.[0] ? (
                         <div className="space-y-1">
-                          <span className="font-mono text-xs font-bold text-cyan-400 block">
+                          <span className="font-mono text-xs font-bold text-emerald-400 block">
                             ₹{(model.quotes[0].priceTotal / 100).toLocaleString("en-IN")}
                           </span>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-400">
                             Status: {model.quotes[0].jobStatus}
                           </span>
                         </div>

@@ -1,20 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "3D Print Store | Custom 3D Printing & Catalog",
-  description: "Shop high-quality 3D printed objects and get instant quotes for custom 3D model prints.",
+  title: "FABRIC3D | Precision 3D Printing & Custom Additive Studio",
+  description: "Instant geometry analysis, deterministic INR pricing, and industrial-grade FDM & Resin manufacturing with 48h dispatch across India.",
 };
 
 export default function RootLayout({
@@ -25,9 +29,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} ${inter.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#050505] text-white selection:bg-emerald-500 selection:text-black">
+        {children}
+      </body>
     </html>
   );
 }
+

@@ -1,22 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --background: #090a0f;
-  --foreground: #f8fafc;
+  --background: #050505;
+  --foreground: #ffffff;
+  --font-heading: var(--font-heading), 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans: var(--font-sans), 'Inter', system-ui, sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  background: #050505;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-heading);
+}
+
 
 /* 3D Wireframe Cube Keyframes & Perspective for Auth & Engineering visual stages */
 @keyframes spin3d {

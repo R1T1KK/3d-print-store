@@ -84,32 +84,34 @@ export default function ResetPasswordPage() {
 
       <div className="flex-1 flex flex-col justify-between p-6 sm:p-12 lg:p-16 max-w-xl mx-auto w-full">
         {/* Top Navigation */}
-        <div className="flex items-center justify-between pb-6">
+        <div className="flex items-center justify-between pb-6 border-b border-white/5">
           <Link
             href="/login"
-            className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-400 hover:text-cyan-400 transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-mono text-zinc-400 hover:text-emerald-400 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
           </Link>
           <div className="lg:hidden flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-cyan-500 flex items-center justify-center text-zinc-950">
-              <Box className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
             </div>
-            <span className="text-sm font-bold tracking-tight text-zinc-100">
-              FABRIC<span className="text-cyan-400">3D</span>
+            <span className="text-sm font-bold tracking-tight text-zinc-100 font-heading">
+              FABRIC<span className="text-emerald-400">3D</span>
             </span>
           </div>
         </div>
 
         {/* Content Box */}
-        <div className="my-auto space-y-6">
+        <div className="my-auto space-y-6 py-6">
           {success ? (
-            <div className="p-8 rounded-2xl bg-zinc-900/90 border border-zinc-800 text-center space-y-4 animate-in fade-in zoom-in-95">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
+            <div className="p-8 rounded-2xl bg-zinc-900/60 border border-white/10 text-center space-y-4 animate-in fade-in zoom-in-95 backdrop-blur-md">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-xl font-bold text-zinc-50">Password Updated!</h2>
+                <h2 className="text-xl font-bold text-white font-heading">Password Updated!</h2>
                 <p className="text-xs text-zinc-400">
                   Your credentials have been securely updated. Redirecting to login...
                 </p>
@@ -118,10 +120,10 @@ export default function ResetPasswordPage() {
           ) : (
             <>
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-cyan-400 uppercase tracking-wider">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400 uppercase tracking-wider">
                   <KeyRound className="w-3 h-3" /> Set New Credentials
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-50">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-heading">
                   Reset Account Password
                 </h1>
                 <p className="text-xs sm:text-sm text-zinc-400">
@@ -138,7 +140,7 @@ export default function ResetPasswordPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* New Password */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-zinc-300" htmlFor="new-password">
                     New Password
                   </label>
@@ -155,7 +157,7 @@ export default function ResetPasswordPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 8 characters"
                       disabled={loading}
-                      className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-zinc-900/60 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
                     />
                     <button
                       type="button"
@@ -169,7 +171,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 {/* Confirm Password */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-zinc-300" htmlFor="confirm-new-password">
                     Confirm New Password
                   </label>
@@ -186,7 +188,7 @@ export default function ResetPasswordPage() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Repeat new password"
                       disabled={loading}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-zinc-900/60 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -194,7 +196,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-2 py-2.5 px-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-sm shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-full mt-2 py-3 px-6 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-sm shadow-[0_4px_20px_rgba(255,255,255,0.15)] flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98]"
                 >
                   {loading ? (
                     <>

@@ -161,40 +161,42 @@ export default function ForgotPasswordPage() {
 
       <div className="flex-1 flex flex-col justify-between p-6 sm:p-12 lg:p-16 max-w-xl mx-auto w-full">
         {/* Top Navigation */}
-        <div className="flex items-center justify-between pb-6">
+        <div className="flex items-center justify-between pb-6 border-b border-white/5">
           <Link
             href="/login"
-            className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-400 hover:text-cyan-400 transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-mono text-zinc-400 hover:text-emerald-400 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
           </Link>
           <div className="lg:hidden flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-cyan-500 flex items-center justify-center text-zinc-950">
-              <Box className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
             </div>
-            <span className="text-sm font-bold tracking-tight text-zinc-100">
-              FABRIC<span className="text-cyan-400">3D</span>
+            <span className="text-sm font-bold tracking-tight text-zinc-100 font-heading">
+              FABRIC<span className="text-emerald-400">3D</span>
             </span>
           </div>
         </div>
 
         {/* Content Box */}
-        <div className="my-auto space-y-6">
+        <div className="my-auto space-y-6 py-6">
           {submitted ? (
-            <div className="p-8 rounded-2xl bg-zinc-900/90 border border-zinc-800 text-center space-y-5 animate-in fade-in zoom-in-95">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
+            <div className="p-8 rounded-2xl bg-zinc-900/60 border border-white/10 text-center space-y-5 animate-in fade-in zoom-in-95 backdrop-blur-md">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-xl font-bold text-zinc-50">Password Successfully Updated!</h2>
+                <h2 className="text-xl font-bold text-white font-heading">Password Successfully Updated!</h2>
                 <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mx-auto">
-                  Your credentials for <span className="font-mono text-cyan-400 font-semibold">{email}</span> have been updated. Redirecting to login...
+                  Your credentials for <span className="font-mono text-emerald-400 font-semibold">{email}</span> have been updated. Redirecting to login...
                 </p>
               </div>
               <div className="pt-2">
                 <Link
                   href="/login?reset=true"
-                  className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-bold transition-all"
+                  className="inline-flex items-center justify-center gap-2 w-full py-3 px-6 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold transition-all shadow-[0_4px_16px_rgba(255,255,255,0.12)]"
                 >
                   Sign In Now
                 </Link>
@@ -203,10 +205,10 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-cyan-400 uppercase tracking-wider">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400 uppercase tracking-wider">
                   <KeyRound className="w-3 h-3" /> Credential Recovery
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-50">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-heading">
                   Reset Your Password
                 </h1>
                 <p className="text-xs sm:text-sm text-zinc-400">
@@ -251,7 +253,7 @@ export default function ForgotPasswordPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="engineer@fabric3d.io"
                         disabled={sendingOtp}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-zinc-900/60 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
                       />
                     </div>
                   </div>
@@ -259,7 +261,7 @@ export default function ForgotPasswordPage() {
                   <button
                     type="submit"
                     disabled={sendingOtp}
-                    className="w-full mt-2 py-2.5 px-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-sm shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
+                    className="w-full mt-2 py-3 px-6 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-sm shadow-[0_4px_20px_rgba(255,255,255,0.15)] flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer active:scale-[0.98]"
                   >
                     {sendingOtp ? (
                       <>
@@ -280,10 +282,10 @@ export default function ForgotPasswordPage() {
               {/* Step 2: Verify Code & Set New Password */}
               {step === "verify" && (
                 <form onSubmit={handleResetPasswordSubmit} className="space-y-4 animate-in fade-in zoom-in-95">
-                  <div className="p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between text-xs">
+                  <div className="p-3 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between text-xs">
                     <div>
                       <span className="text-zinc-400">Target email: </span>
-                      <span className="font-mono text-cyan-400 font-semibold">{email}</span>
+                      <span className="font-mono text-emerald-400 font-semibold">{email}</span>
                     </div>
                     <button
                       type="button"
@@ -312,7 +314,7 @@ export default function ForgotPasswordPage() {
                   </div>
 
                   {/* New Password */}
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-zinc-300" htmlFor="reset-password">
                       New Password
                     </label>
@@ -329,7 +331,7 @@ export default function ForgotPasswordPage() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="At least 8 characters"
                         disabled={resetting}
-                        className="w-full pl-10 pr-10 py-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
+                        className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-zinc-900/60 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
                       />
                       <button
                         type="button"
@@ -343,7 +345,7 @@ export default function ForgotPasswordPage() {
                   </div>
 
                   {/* Confirm New Password */}
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-zinc-300" htmlFor="confirm-reset-password">
                       Confirm New Password
                     </label>
@@ -360,7 +362,7 @@ export default function ForgotPasswordPage() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Repeat new password"
                         disabled={resetting}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-zinc-900/60 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all disabled:opacity-50"
                       />
                     </div>
                   </div>
@@ -370,7 +372,7 @@ export default function ForgotPasswordPage() {
                       type="button"
                       onClick={() => handleSendResetOtp()}
                       disabled={resendCooldown > 0 || sendingOtp}
-                      className="text-cyan-400 hover:text-cyan-300 font-medium inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                      className="text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
                     >
                       <RefreshCw className={`w-3 h-3 ${sendingOtp ? "animate-spin" : ""}`} />
                       <span>{resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}</span>
@@ -380,7 +382,7 @@ export default function ForgotPasswordPage() {
                   <button
                     type="submit"
                     disabled={resetting || otpCode.trim().length !== 6}
-                    className="w-full mt-2 py-2.5 px-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 font-bold text-sm shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
+                    className="w-full mt-2 py-3 px-6 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-sm shadow-[0_4px_20px_rgba(255,255,255,0.15)] flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer active:scale-[0.98]"
                   >
                     {resetting ? (
                       <>
@@ -397,11 +399,11 @@ export default function ForgotPasswordPage() {
                 </form>
               )}
 
-              <div className="pt-4 border-t border-zinc-800/80 text-center text-xs text-zinc-400">
+              <div className="pt-4 border-t border-white/5 text-center text-xs text-zinc-400">
                 Remember your password?{" "}
                 <Link
                   href="/login"
-                  className="font-semibold text-cyan-400 hover:text-cyan-300 underline underline-offset-4 transition-colors"
+                  className="font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-4 transition-colors"
                 >
                   Sign In
                 </Link>

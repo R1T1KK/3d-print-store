@@ -142,16 +142,16 @@ export default function ProductGrid({ onAddToCart }: ProductGridProps) {
   return (
     <div className="w-full">
       {/* Category Filter Pills */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-8">
         <div className="flex flex-wrap items-center gap-2">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+              className={`px-5 py-2 rounded-full text-xs font-medium transition-all cursor-pointer ${
                 selectedCategory === cat
-                  ? "bg-zinc-100 text-zinc-950 shadow-md"
-                  : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
+                  ? "bg-white text-black shadow-[0_4px_18px_rgba(0,0,0,0.25)] font-semibold"
+                  : "bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-white/20 backdrop-blur-md"
               }`}
             >
               {cat}
@@ -159,8 +159,8 @@ export default function ProductGrid({ onAddToCart }: ProductGridProps) {
           ))}
         </div>
 
-        <span className="text-xs text-zinc-400 font-mono">
-          Showing {filteredProducts.length} verified models
+        <span className="text-xs text-white/40 font-mono">
+          Showing {filteredProducts.length} verified designs
         </span>
       </div>
 
@@ -172,51 +172,51 @@ export default function ProductGrid({ onAddToCart }: ProductGridProps) {
           return (
             <div
               key={product.id}
-              className="group relative bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-5 flex flex-col justify-between transition-all hover:shadow-xl hover:-translate-y-1 backdrop-blur-sm"
+              className="group relative bg-[#0a0a0a]/80 border border-white/10 hover:border-emerald-500/30 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_35px_rgba(16,185,129,0.10)] backdrop-blur-md"
             >
               <div>
-                {/* Visual Placeholder / Mock 3D Badge */}
-                <div className="relative w-full h-44 rounded-xl bg-gradient-to-br from-zinc-800/80 to-zinc-950 flex flex-col items-center justify-center border border-zinc-800 overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.12),transparent_70%)]" />
-                  <Box className="w-12 h-12 text-zinc-500 group-hover:text-cyan-400 group-hover:scale-110 transition-all duration-300" />
-                  <span className="text-[11px] font-mono text-zinc-400 mt-2">
+                {/* Visual Canvas / 3D Badge */}
+                <div className="relative w-full h-48 rounded-2xl bg-[#0e0e0e] flex flex-col items-center justify-center border border-white/10 overflow-hidden group-hover:border-white/20 transition-all">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.12),transparent_70%)]" />
+                  <Box className="w-12 h-12 text-white/40 group-hover:text-emerald-400 group-hover:scale-110 transition-all duration-300" />
+                  <span className="text-[11px] font-mono text-white/40 mt-3">
                     {product.dimensions}
                   </span>
 
                   {/* 3D Interactive Badge */}
-                  <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-950/80 border border-zinc-700 text-[10px] text-zinc-300 font-mono">
-                    <Sparkles className="w-3 h-3 text-cyan-400" /> 3D Preview
+                  <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 border border-white/15 text-[10px] text-white/80 font-mono backdrop-blur-md">
+                    <Sparkles className="w-3 h-3 text-emerald-400" /> 3D Preview
                   </div>
 
-                  <div className="absolute bottom-3 left-3 text-[10px] font-mono text-zinc-400">
-                    Est. Print: {product.printTime}
+                  <div className="absolute bottom-3.5 left-3.5 text-[10px] font-mono text-white/50">
+                    Print: {product.printTime}
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="mt-4">
-                  <div className="flex items-center justify-between text-xs text-zinc-400">
-                    <span className="px-2 py-0.5 rounded bg-zinc-800 font-mono text-[10px] text-cyan-300">
+                <div className="mt-5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-[10px] text-emerald-300">
                       {product.category}
                     </span>
-                    <span className="flex items-center gap-1 text-amber-400 font-semibold">
-                      <Star className="w-3.5 h-3.5 fill-amber-400" /> {product.rating}
+                    <span className="flex items-center gap-1 text-amber-300 font-semibold text-xs">
+                      <Star className="w-3 h-3 fill-amber-300" /> {product.rating}
                     </span>
                   </div>
 
-                  <h4 className="text-base font-bold text-zinc-100 mt-2 group-hover:text-cyan-300 transition-colors">
+                  <h4 className="text-[17px] font-semibold text-white mt-2.5 group-hover:text-emerald-300 transition-colors font-heading tracking-tight">
                     {product.name}
                   </h4>
-                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-white/50 mt-1.5 line-clamp-2 leading-relaxed">
                     {product.description}
                   </p>
 
                   {/* Materials */}
-                  <div className="flex flex-wrap gap-1.5 mt-3">
+                  <div className="flex flex-wrap gap-1.5 mt-3.5">
                     {product.materials.map((mat) => (
                       <span
                         key={mat}
-                        className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-950 border border-zinc-800 text-zinc-400"
+                        className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/60"
                       >
                         {mat}
                       </span>
@@ -226,29 +226,29 @@ export default function ProductGrid({ onAddToCart }: ProductGridProps) {
               </div>
 
               {/* Price & Add to Cart */}
-              <div className="mt-5 pt-4 border-t border-zinc-800/80 flex items-center justify-between">
+              <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Ready to Print</div>
-                  <div className="text-xl font-extrabold text-zinc-100 font-mono">
+                  <div className="text-[10px] text-white/40 uppercase tracking-wider font-mono">Ready to Print</div>
+                  <div className="text-xl font-bold text-white font-mono mt-0.5">
                     ₹{product.price.toLocaleString("en-IN")}
                   </div>
                 </div>
 
                 <button
                   onClick={() => handleAdd(product)}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md ${
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-sm ${
                     isJustAdded
-                      ? "bg-emerald-500 text-zinc-950"
-                      : "bg-zinc-100 hover:bg-white text-zinc-950 hover:shadow-cyan-500/20"
+                      ? "bg-emerald-500 text-black shadow-lg shadow-emerald-500/20"
+                      : "bg-white text-black hover:bg-white/90 hover:scale-[1.02]"
                   }`}
                 >
                   {isJustAdded ? (
                     <>
-                      <Check className="w-4 h-4" /> Added
+                      <Check className="w-3.5 h-3.5" /> Added
                     </>
                   ) : (
                     <>
-                      <ShoppingCart className="w-4 h-4" /> Add to Cart
+                      <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
                     </>
                   )}
                 </button>
@@ -260,3 +260,4 @@ export default function ProductGrid({ onAddToCart }: ProductGridProps) {
     </div>
   );
 }
+

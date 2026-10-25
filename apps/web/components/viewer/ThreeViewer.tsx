@@ -249,7 +249,7 @@ export default function ThreeViewer({
     const outlineGeo = new THREE.EdgesGeometry(
       new THREE.BoxGeometry(PRINTER_BED_LIMITS.widthX, 0.1, PRINTER_BED_LIMITS.depthY)
     );
-    const outlineMat = new THREE.LineBasicMaterial({ color: 0x06b6d4, linewidth: 2 });
+    const outlineMat = new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 2 });
     const outline = new THREE.LineSegments(outlineGeo, outlineMat);
     outline.position.y = 0.2;
     bedGroup.add(outline);
@@ -451,18 +451,19 @@ export default function ThreeViewer({
       ref={wrapperRef}
       className={`relative flex flex-col transition-all duration-300 ${
         isFullscreen
-          ? "fixed inset-0 z-50 w-screen h-screen rounded-none bg-zinc-950"
-          : "w-full h-[580px] lg:h-[680px] rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 shadow-2xl"
+          ? "fixed inset-0 z-50 w-screen h-screen rounded-none bg-[#050505]"
+          : "w-full h-[580px] lg:h-[680px] rounded-3xl overflow-hidden border border-white/10 bg-[#080808] shadow-2xl backdrop-blur-md"
       }`}
     >
       {/* Loading Overlay */}
       {isLoading && (
-        <div className="absolute inset-0 z-30 bg-zinc-950/80 backdrop-blur-sm flex flex-col items-center justify-center">
-          <div className="w-10 h-10 border-3 border-cyan-500 border-t-transparent rounded-full animate-spin mb-3" />
-          <h4 className="text-sm font-bold text-zinc-100">Parsing 3D Mesh Geometry...</h4>
-          <p className="text-xs text-zinc-400 mt-1">Analyzing vertices, bounding box & bed fit</p>
+        <div className="absolute inset-0 z-30 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center">
+          <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3" />
+          <h4 className="text-sm font-semibold text-white font-heading">Parsing 3D Mesh Geometry...</h4>
+          <p className="text-xs text-white/50 mt-1 font-sans">Analyzing vertices, bounding box & bed fit</p>
         </div>
       )}
+
 
       {/* Error Alert Banner */}
       {loadError && (
