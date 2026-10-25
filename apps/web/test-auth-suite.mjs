@@ -6,6 +6,13 @@ import {
   isValidOtpCode,
   sanitizeOtpCode,
 } from "./lib/auth-validators.ts";
+import {
+  generate6DigitOtp,
+  saveOtp,
+  verifyOtp,
+  canSendOtp,
+  clearOtp,
+} from "./lib/otp-store.ts";
 
 console.log("=== Running Customer Auth & Security Validation Suite ===");
 
@@ -91,7 +98,63 @@ assert.strictEqual(sanitizeOtpCode(" 123-456 "), "123456", "Strips dashes and sp
 assert.strictEqual(sanitizeOtpCode("abc45678extra"), "ABC45678", "Upper-cases and truncates to 8");
 console.log("✓ OTP format checks and sanitization verified.");
 
-console.log("\n=======================================================");
-console.log("  ALL AUTH & SECURITY TESTS PASSED SUCCESSFULLY! (5/5)  ");
-console.log("=======================================================");
+// 6. Complete In-Memory OTP Store Lifecycle & Security
+console.log("\nTest 6: In-Memory OTP Store Lifecycle & Security...");
 
+// 6.1 Cryptographic 6-digit generator
+const code1 = generate6DigitOtp();
+const code2 = generate6DigitOtp();
+assert.strictEqual(code1.length, 6, "OTP must be exactly 6 characters");
+assert(/^\d{6}$/.test(code1), "OTP must contain digits only");
+assert.notStrictEqual(code1, code2, "Subsequent OTPs should be random");
+
+// 6.2 Storage and purpose separation
+const testEmail = "engineer.test@fabric3d.io";
+clearOtp(testEmail);
+
+saveOtp(testEmail, "654321", {
+  purpose: "login",
+  name: "Arjun Engineer",
+});
+
+// 6.3 Rate limit cooldown enforcement
+const cooldownCheck = canSendOtp(testEmail);
+assert.strictEqual(cooldownCheck.allowed, false, "Should block immediate re-send within 60s cooldown");
+assert(cooldownCheck.waitSeconds && cooldownCheck.waitSeconds > 0, "Cooldown seconds should be positive");
+
+// 6.4 Purpose mismatch rejection
+const purposeMismatch = verifyOtp(testEmail, "654321", "register");
+assert.strictEqual(purposeMismatch.valid, false, "Should fail when purpose does not match");
+assert(purposeMismatch.error?.includes("login"), "Error should explain purpose mismatch");
+
+// 6.5 Incorrect code increments attempts
+const incorrectCheck = verifyOtp(testEmail, "000000", "login");
+assert.strictEqual(incorrectCheck.valid, false, "Wrong code should fail");
+assert(incorrectCheck.error?.includes("attempt"), "Should report remaining attempts");
+
+// 6.6 Brute force lockout test
+verifyOtp(testEmail, "000001", "login"); // attempt 2
+verifyOtp(testEmail, "000002", "login"); // attempt 3
+verifyOtp(testEmail, "000003", "login"); // attempt 4
+const fifthAttempt = verifyOtp(testEmail, "000004", "login"); // attempt 5
+assert.strictEqual(fifthAttempt.valid, false);
+
+const lockedOutAttempt = verifyOtp(testEmail, "654321", "login"); // Even with correct code, now locked out
+assert.strictEqual(lockedOutAttempt.valid, false, "Should be locked out after 5 failed attempts");
+assert(lockedOutAttempt.error?.includes("invalidated"), "Should state code invalidated for security");
+
+// 6.7 Successful verification consumes code (single use)
+saveOtp(testEmail, "789123", { purpose: "register", name: "Success User" });
+const successResult = verifyOtp(testEmail, "789123", "register");
+assert.strictEqual(successResult.valid, true, "Valid code should verify");
+assert.strictEqual(successResult.meta?.name, "Success User", "Meta name should be preserved");
+
+// Verify code was deleted (cannot be re-used)
+const reuseAttempt = verifyOtp(testEmail, "789123", "register");
+assert.strictEqual(reuseAttempt.valid, false, "Consumed code cannot be reused (single-use)");
+
+console.log("✓ OTP store generation, rate limiting, purpose isolation, brute-force lockout, and single-use security verified.");
+
+console.log("\n=======================================================");
+console.log("  ALL AUTH & SECURITY TESTS PASSED SUCCESSFULLY! (6/6)  ");
+console.log("=======================================================");

@@ -77,7 +77,7 @@ function RegisterForm() {
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, name: fullName, password }),
+        body: JSON.stringify({ email: cleanEmail, name: fullName, password, purpose: "register" }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -88,7 +88,7 @@ function RegisterForm() {
 
       // Keep on the same page and expand the inline OTP box under Email
       setIsInlineOtpOpen(true);
-      setResendCooldown(60);
+      setResendCooldown(data.cooldown || 60);
       setOtpSuccess(`6-digit verification code sent to ${cleanEmail}`);
     } catch {
       setErrorMessage("Network error while dispatching OTP. Please check your connection.");
@@ -122,6 +122,7 @@ function RegisterForm() {
         body: JSON.stringify({
           email: cleanEmail,
           code: cleanOtp,
+          purpose: "register",
           password,
           name: fullName,
         }),
@@ -161,6 +162,7 @@ function RegisterForm() {
           email: email.trim(),
           name: fullName,
           password,
+          purpose: "register",
         }),
       });
       const data = await res.json();
@@ -169,7 +171,7 @@ function RegisterForm() {
         setOtpError(data.error || "Failed to resend code.");
       } else {
         setOtpSuccess("A new 6-digit verification code has been dispatched to your Gmail!");
-        setResendCooldown(60);
+        setResendCooldown(data.cooldown || 60);
       }
     } catch {
       setOtpError("Failed to resend code. Please try again.");
@@ -233,38 +235,40 @@ function RegisterForm() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const emailRedirectTo = `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
-
-      const { data, error } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-        options: {
-          data: {
-            name: cleanName,
-            full_name: cleanName,
-          },
-          emailRedirectTo,
-        },
+      // 1. Finalize account credentials in Supabase Admin + Prisma
+      const completeRes = await fetch("/api/auth/complete-registration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: cleanEmail,
+          password,
+          name: cleanName,
+        }),
       });
 
-      if (error && !error.message.toLowerCase().includes("already registered")) {
-        setErrorMessage(error.message || "Failed to create account. Please try again.");
+      const completeData = await completeRes.json();
+      if (!completeRes.ok) {
+        setErrorMessage(completeData.error || "Failed to finalize account credentials.");
         setLoading(false);
         return;
       }
 
-      // Synchronize Supabase user into PostgreSQL Prisma database
-      await fetch("/api/account/profile").catch(() => {});
+      // 2. Establish authenticated session in the browser
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
 
-      // Sign in if session wasn't auto-granted
-      if (!data?.session) {
-        await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password,
-        });
+      if (signInError) {
+        console.error("Sign in after complete registration:", signInError);
+        // Fallback: redirect to login
+        router.push(`/login?verified=true&redirect=${encodeURIComponent(redirectPath)}`);
+        return;
       }
+
+      // 3. Sync customer profile with database
+      await fetch("/api/account/profile").catch(() => {});
 
       router.push(redirectPath.startsWith("/") ? redirectPath : "/account");
       router.refresh();
