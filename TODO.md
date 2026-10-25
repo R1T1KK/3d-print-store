@@ -1,8 +1,8 @@
 # 3D Print Store — Project Progress & TODO Tracker
 
 > **Source of Truth**: [SPEC.md](file:///c:/Users/abhay%20mishra/Downloads/3D_website/SPEC.md) & [IMPLEMENTATION_PLAN.md](file:///c:/Users/abhay%20mishra/Downloads/3D_website/IMPLEMENTATION_PLAN.md)  
-> **Last Updated**: 2026-10-24  
-> **Overall Progress**: **~80% Completed**
+> **Last Updated**: 2026-10-25  
+> **Overall Progress**: **~95% Completed** (Full-Stack Features + Aurora UI/UX Redesign Complete)
 
 ---
 
@@ -10,13 +10,44 @@
 
 ```
 M0: Setup & Foundation         [██████████] 100% (Complete)
-M1: Storefront & 3D Catalog    [█████████░]  90% (Auth, Gmail OTP, & Middleware Complete)
-M2: Custom Upload & Quoting    [██████████] 100% (Complete)
-M3: Checkout & Razorpay        [██████████] 100% (Complete & Live Tested)
-M4: Admin Dashboard            [██████████] 100% (Complete)
-M5: Testing & Hardening        [██████░░░░]  60% (Geometry, Pricing & Checkout Suites Passing)
-M6: Deployment & Launch        [░░░░░░░░░░]   0% (Pending)
+M1: Storefront & 3D Catalog    [██████████] 100% (Aurora Redesign + Auth & Cart Complete)
+M2: Custom Upload & Quoting    [██████████] 100% (Aurora Redesign + Mesh Service Complete)
+M3: Checkout & Razorpay        [██████████] 100% (Aurora Redesign + Live Tested)
+M4: Admin Dashboard            [██████████] 100% (Aurora Redesign Complete)
+M5: Testing & Hardening        [██████████] 100% (Vitest, Playwright E2E & Pytest Passing)
+M6: Deployment & Launch        [░░░░░░░░░░]   0% (Pending Live Hosting & Domain)
 ```
+
+---
+
+## Aurora UI/UX Redesign Milestone (Complete on `feature/aurora-redesign`)
+- [x] **Cinematic Landing Page Hero**:
+  - [x] Background video (`public/hero.mp4`) with light ambient overlays and emerald radial glow (`#10b981` → `#047857`).
+  - [x] Bottom-left anchored layout in Plus Jakarta Sans (*"Precision That Lights the Way"*).
+  - [x] Trusted-by avatar badge with emerald gradient stack.
+  - [x] White pill CTAs + circular video play button.
+  - [x] Pinned social icons in bottom-left corner.
+- [x] **Floating Frosted Glass Navigation (`Navbar.tsx`)**:
+  - [x] Line-art 3D logo icon and Plus Jakarta Sans branding.
+  - [x] Live session indicator, dynamic user account dropdown, cart drawer trigger, and white pill CTA.
+- [x] **Storefront & Catalog Redesign (`ProductGrid.tsx`, `page.tsx`)**:
+  - [x] Rounded pill category filter buttons with emerald active states.
+  - [x] Obsidian glass cards (`bg-zinc-900/40 border border-white/10`) with radial hover glows.
+  - [x] Seamless transition to 3D interactive viewer and instant custom quote calculator.
+- [x] **WebGL 3D Viewer (`ThreeViewer.tsx`)**:
+  - [x] Emerald grid outline (`0x10b981`), dark obsidian container, and frosted glass telemetry badges.
+- [x] **Custom Model Upload & Quoting (`InstantQuoteCalculator.tsx`)**:
+  - [x] Aurora 3-column glass layout, emerald dashed dropzone, active file diagnostic card, and real-time pricing breakdown.
+- [x] **Cart Drawer & Checkout Flow (`CartDrawer.tsx`, `checkout/page.tsx`, `order-success/[id]/page.tsx`)**:
+  - [x] Obsidian frosted glass drawer with emerald free-shipping progress indicator.
+  - [x] Razorpay emerald modal integration (`#10b981`) and authenticated order confirmation breakdown.
+- [x] **Authentication & Account Portals (`(auth)/*`, `(account)/account/page.tsx`)**:
+  - [x] 3D wireframe visual panel, 6-digit OTP input boxes with emerald focus rings, and white pill submit buttons.
+  - [x] Customer account dashboard with obsidian glass cards and order history links.
+- [x] **Admin Management Dashboard (`(admin)/admin/*`, `AdminSidebar.tsx`, `AdminNavbar.tsx`)**:
+  - [x] Obsidian glass styling, emerald KPI revenue badges, and fulfillment workflow controls.
+- [x] **Safety & Rollback**:
+  - [x] Committed cleanly to dedicated branch `feature/aurora-redesign` (`453223c`). Easy 1-command rollback to `main` at any time.
 
 ---
 
