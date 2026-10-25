@@ -44,16 +44,7 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // 1. Root storefront route: require login so unauthenticated visitors go to login/signup
-  if (pathname === "/") {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // 2. Protected customer routes: /account/*
+  // 1. Protected customer routes: /account/*
   if (pathname.startsWith("/account")) {
     if (!user) {
       const url = request.nextUrl.clone();
@@ -71,13 +62,7 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set("redirect", pathname);
       return NextResponse.redirect(url);
     }
-
-    const role = user.app_metadata?.role || user.user_metadata?.role;
-    if (role !== "ADMIN") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
-    }
+    // Database-backed role authorization is strictly enforced by layout.tsx and API route guards
   }
 
   // 4. Guest-only auth routes: /login, /register, /forgot-password

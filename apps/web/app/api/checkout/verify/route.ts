@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { verifyRazorpayPaymentSignature } from "@/lib/razorpay";
+import {
+  isRazorpayConfigured,
+  getRazorpayClient,
+  verifyRazorpayPaymentSignature,
+} from "@/lib/razorpay";
 import { OrderStatus } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
@@ -49,13 +53,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
     }
 
-    // If order is already paid (e.g. processed by webhook first), return success idempotently
+    // If order is already paid (e.g. processed by webhook first or duplicate verification), return success idempotently
     if (order.status === OrderStatus.PAID) {
       return NextResponse.json({
         success: true,
         orderId: order.id,
         status: order.status,
       });
+    }
+
+    // 3b. Verify that razorpayOrderId matches the server-created Razorpay order session
+    // (Prevents order substitution and cross-order signature replay attacks)
+    if (
+      order.paymentRef &&
+      order.paymentRef.startsWith("order_") &&
+      order.paymentRef !== razorpayOrderId
+    ) {
+      console.error(
+        `Razorpay order ID mismatch for order ${orderId}. Expected ${order.paymentRef}, got ${razorpayOrderId}`
+      );
+      return NextResponse.json(
+        { error: "Payment verification failed: Razorpay order identifier mismatch." },
+        { status: 400 }
+      );
     }
 
     // 4. Server-Side HMAC Signature Verification (SECURITY.md §4.2)
@@ -73,6 +93,50 @@ export async function POST(request: NextRequest) {
         { error: "Payment verification failed: invalid HMAC signature." },
         { status: 400 }
       );
+    }
+
+    // 4b. Gateway-level amount, currency & status verification with Razorpay
+    if (isRazorpayConfigured()) {
+      try {
+        const client = getRazorpayClient();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const payment: any = await client.payments.fetch(razorpayPaymentId);
+
+        // Verify currency
+        if (payment.currency && payment.currency !== order.currency) {
+          return NextResponse.json(
+            { error: "Payment verification failed: currency mismatch." },
+            { status: 400 }
+          );
+        }
+
+        // Verify amount in integer paise
+        if (payment.amount !== undefined && Number(payment.amount) !== order.total) {
+          return NextResponse.json(
+            { error: "Payment verification failed: payment amount mismatch." },
+            { status: 400 }
+          );
+        }
+
+        // Verify payment is captured or authorized
+        if (payment.status && payment.status !== "captured" && payment.status !== "authorized") {
+          return NextResponse.json(
+            { error: `Payment not completed. Status: ${payment.status}` },
+            { status: 400 }
+          );
+        }
+
+        // Verify payment is linked to the expected Razorpay order ID
+        if (payment.order_id && payment.order_id !== razorpayOrderId) {
+          return NextResponse.json(
+            { error: "Payment verification failed: payment is not linked to this order." },
+            { status: 400 }
+          );
+        }
+      } catch (gatewayErr: unknown) {
+        console.error("Gateway payment check warning:", gatewayErr);
+        // In case of transient gateway fetch issues, HMAC signature remains cryptographic authority
+      }
     }
 
     // 5. Atomic state transition: PENDING_PAYMENT -> PAID

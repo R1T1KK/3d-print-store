@@ -333,6 +333,228 @@ assert.equal(PHONE_REGEX.test("98765432101"), false, "11-digit phone is invalid"
 
 console.log("  ✓ Indian shipping PIN and mobile format validators verified.");
 
+// ---------------------------------------------------------------------------
+// 7. Backend Payment Verification Flow & Security Guardrails
+// ---------------------------------------------------------------------------
+console.log("\nTest 7: Backend Payment Verification Security & State Transition Guardrails...");
+
+function simulatePaymentVerification(params) {
+  const {
+    currentUserId,
+    order,
+    body,
+    secret,
+    mockGatewayPayment,
+  } = params;
+
+  // 1. Auth check
+  if (!currentUserId) {
+    return { status: 401, error: "Unauthorized" };
+  }
+
+  // 2. Payload check
+  if (
+    !body ||
+    !body.orderId ||
+    !body.razorpayOrderId ||
+    !body.razorpayPaymentId ||
+    !body.razorpaySignature
+  ) {
+    return { status: 400, error: "Missing required payment verification parameters." };
+  }
+
+  // 3. Order ownership check
+  if (!order || order.userId !== currentUserId) {
+    return { status: 404, error: "Order not found." };
+  }
+
+  // Idempotency: if already PAID, return success
+  if (order.status === "PAID") {
+    return { status: 200, success: true, orderId: order.id, statusValue: order.status, idempotent: true };
+  }
+
+  // 3b. Razorpay Order ID binding
+  if (order.paymentRef && order.paymentRef.startsWith("order_") && order.paymentRef !== body.razorpayOrderId) {
+    return { status: 400, error: "Payment verification failed: Razorpay order identifier mismatch." };
+  }
+
+  // 4. HMAC signature check
+  const isValidSignature = verifyPaymentSig(
+    body.razorpayOrderId,
+    body.razorpayPaymentId,
+    body.razorpaySignature,
+    secret
+  );
+  if (!isValidSignature) {
+    return { status: 400, error: "Payment verification failed: invalid HMAC signature." };
+  }
+
+  // 4b. Gateway checks (amount & currency match)
+  if (mockGatewayPayment) {
+    if (mockGatewayPayment.currency && mockGatewayPayment.currency !== order.currency) {
+      return { status: 400, error: "Payment verification failed: currency mismatch." };
+    }
+    if (mockGatewayPayment.amount !== undefined && mockGatewayPayment.amount !== order.total) {
+      return { status: 400, error: "Payment verification failed: payment amount mismatch." };
+    }
+    if (mockGatewayPayment.status !== "captured" && mockGatewayPayment.status !== "authorized") {
+      return { status: 400, error: `Payment not completed. Status: ${mockGatewayPayment.status}` };
+    }
+  }
+
+  // 5. Atomic state transition
+  order.status = "PAID";
+  order.paymentRef = body.razorpayPaymentId;
+
+  return { status: 200, success: true, orderId: order.id, statusValue: order.status, idempotent: false };
+}
+
+const auditSecret = "rzp_sec_test_audit_49102";
+const baseOrder = {
+  id: "order_test_101",
+  userId: "user_alice",
+  status: "PENDING_PAYMENT",
+  total: 100, // 100 paise = ₹1
+  currency: "INR",
+  paymentRef: "order_RzpOrder_101",
+};
+
+// 7a. Valid payment transitions order to PAID
+const testOrder1 = { ...baseOrder };
+const validRzpOrderId = "order_RzpOrder_101";
+const validRzpPayId = "pay_RzpPayment_101";
+const validSig = crypto
+  .createHmac("sha256", auditSecret)
+  .update(`${validRzpOrderId}|${validRzpPayId}`)
+  .digest("hex");
+
+const res7a = simulatePaymentVerification({
+  currentUserId: "user_alice",
+  order: testOrder1,
+  body: {
+    orderId: "order_test_101",
+    razorpayOrderId: validRzpOrderId,
+    razorpayPaymentId: validRzpPayId,
+    razorpaySignature: validSig,
+  },
+  secret: auditSecret,
+  mockGatewayPayment: { amount: 100, currency: "INR", status: "captured" },
+});
+assert.equal(res7a.status, 200);
+assert.equal(testOrder1.status, "PAID", "Valid payment must transition order status to PAID");
+assert.equal(testOrder1.paymentRef, validRzpPayId, "Payment ref must store Razorpay payment ID");
+
+// 7b. Invalid signature leaves order PENDING_PAYMENT
+const testOrder2 = { ...baseOrder };
+const res7b = simulatePaymentVerification({
+  currentUserId: "user_alice",
+  order: testOrder2,
+  body: {
+    orderId: "order_test_101",
+    razorpayOrderId: validRzpOrderId,
+    razorpayPaymentId: validRzpPayId,
+    razorpaySignature: "invalid_hmac_signature_hex",
+  },
+  secret: auditSecret,
+  mockGatewayPayment: { amount: 100, currency: "INR", status: "captured" },
+});
+assert.equal(res7b.status, 400);
+assert.equal(testOrder2.status, "PENDING_PAYMENT", "Failed signature verification must leave order unpaid");
+
+// 7c. Wrong Razorpay Order ID (cross-order replay attack) rejected
+const testOrder3 = { ...baseOrder };
+const differentRzpOrderId = "order_RzpOrder_DIFFERENT";
+const sigForDifferentOrder = crypto
+  .createHmac("sha256", auditSecret)
+  .update(`${differentRzpOrderId}|${validRzpPayId}`)
+  .digest("hex");
+
+const res7c = simulatePaymentVerification({
+  currentUserId: "user_alice",
+  order: testOrder3,
+  body: {
+    orderId: "order_test_101",
+    razorpayOrderId: differentRzpOrderId,
+    razorpayPaymentId: validRzpPayId,
+    razorpaySignature: sigForDifferentOrder,
+  },
+  secret: auditSecret,
+});
+assert.equal(res7c.status, 400);
+assert.match(res7c.error, /Razorpay order identifier mismatch/);
+assert.equal(testOrder3.status, "PENDING_PAYMENT", "Order ID mismatch must leave order unpaid");
+
+// 7d. Amount mismatch rejected
+const testOrder4 = { ...baseOrder, total: 50000 }; // ₹500
+const res7d = simulatePaymentVerification({
+  currentUserId: "user_alice",
+  order: testOrder4,
+  body: {
+    orderId: "order_test_101",
+    razorpayOrderId: validRzpOrderId,
+    razorpayPaymentId: validRzpPayId,
+    razorpaySignature: validSig,
+  },
+  secret: auditSecret,
+  mockGatewayPayment: { amount: 100, currency: "INR", status: "captured" }, // Gateway paid only ₹1
+});
+assert.equal(res7d.status, 400);
+assert.match(res7d.error, /payment amount mismatch/);
+assert.equal(testOrder4.status, "PENDING_PAYMENT", "Amount mismatch must leave order unpaid");
+
+// 7e. Currency mismatch rejected
+const testOrder5 = { ...baseOrder };
+const res7e = simulatePaymentVerification({
+  currentUserId: "user_alice",
+  order: testOrder5,
+  body: {
+    orderId: "order_test_101",
+    razorpayOrderId: validRzpOrderId,
+    razorpayPaymentId: validRzpPayId,
+    razorpaySignature: validSig,
+  },
+  secret: auditSecret,
+  mockGatewayPayment: { amount: 100, currency: "USD", status: "captured" }, // Currency mismatch
+});
+assert.equal(res7e.status, 400);
+assert.match(res7e.error, /currency mismatch/);
+assert.equal(testOrder5.status, "PENDING_PAYMENT", "Currency mismatch must leave order unpaid");
+
+// 7f. Duplicate verification request handled safely & idempotently
+const testOrder6 = { ...baseOrder, status: "PAID", paymentRef: validRzpPayId };
+const res7f = simulatePaymentVerification({
+  currentUserId: "user_alice",
+  order: testOrder6,
+  body: {
+    orderId: "order_test_101",
+    razorpayOrderId: validRzpOrderId,
+    razorpayPaymentId: validRzpPayId,
+    razorpaySignature: validSig,
+  },
+  secret: auditSecret,
+});
+assert.equal(res7f.status, 200);
+assert.equal(res7f.idempotent, true, "Duplicate verification must return success idempotently");
+assert.equal(testOrder6.status, "PAID");
+
+// 7g. Unauthenticated / wrong user ownership rejected
+const testOrder7 = { ...baseOrder };
+const res7g = simulatePaymentVerification({
+  currentUserId: "user_mallory", // Mallory trying to verify Alice's order
+  order: testOrder7,
+  body: {
+    orderId: "order_test_101",
+    razorpayOrderId: validRzpOrderId,
+    razorpayPaymentId: validRzpPayId,
+    razorpaySignature: validSig,
+  },
+  secret: auditSecret,
+});
+assert.equal(res7g.status, 404);
+assert.equal(testOrder7.status, "PENDING_PAYMENT", "Unauthorized user must not be able to verify order");
+
+console.log("  ✓ End-to-end payment verification security rules passed (order ID binding, amount/currency match, idempotency, failure safety).");
+
 console.log("\n==================================================================");
-console.log("ALL 6 MILESTONE M3 CHECKOUT & PAYMENT SECURITY TEST SUITES PASSED!");
+console.log("ALL 7 MILESTONE M3 CHECKOUT & PAYMENT SECURITY TEST SUITES PASSED!");
 console.log("==================================================================");

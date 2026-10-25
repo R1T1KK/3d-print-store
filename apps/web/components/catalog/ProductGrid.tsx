@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, ShoppingCart, Check, Star, Sparkles } from "lucide-react";
 
 export interface CatalogProduct {
@@ -96,15 +96,40 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ onAddToCart }: ProductGridProps) {
+  const [products, setProducts] = useState<CatalogProduct[]>(CATALOG_PRODUCTS);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [addedIds, setAddedIds] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function fetchLiveProducts() {
+      try {
+        const res = await fetch("/api/products");
+        if (res.ok) {
+          const data = await res.json();
+          if (!ignore && Array.isArray(data.products) && data.products.length > 0) {
+            setProducts(data.products);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch live products from database, using fallback:", err);
+      }
+    }
+
+    fetchLiveProducts();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const categories = ["All", "Mechanical", "Robotics", "Drones", "Desk & Lifestyle"];
 
   const filteredProducts =
     selectedCategory === "All"
-      ? CATALOG_PRODUCTS
-      : CATALOG_PRODUCTS.filter((p) => p.category === selectedCategory);
+      ? products
+      : products.filter((p) => p.category === selectedCategory);
 
   const handleAdd = (product: CatalogProduct) => {
     onAddToCart(product);

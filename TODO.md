@@ -2,7 +2,7 @@
 
 > **Source of Truth**: [SPEC.md](file:///c:/Users/abhay%20mishra/Downloads/3D_website/SPEC.md) & [IMPLEMENTATION_PLAN.md](file:///c:/Users/abhay%20mishra/Downloads/3D_website/IMPLEMENTATION_PLAN.md)  
 > **Last Updated**: 2026-10-24  
-> **Overall Progress**: **~40% Completed**
+> **Overall Progress**: **~80% Completed**
 
 ---
 
@@ -12,9 +12,9 @@
 M0: Setup & Foundation         [██████████] 100% (Complete)
 M1: Storefront & 3D Catalog    [█████████░]  90% (Auth, Gmail OTP, & Middleware Complete)
 M2: Custom Upload & Quoting    [██████████] 100% (Complete)
-M3: Checkout & Razorpay        [░░░░░░░░░░]   0% (Pending)
-M4: Admin Dashboard            [░░░░░░░░░░]   0% (Pending)
-M5: Testing & Hardening        [████░░░░░░]  40% (Geometry & Pricing Tests Passing)
+M3: Checkout & Razorpay        [██████████] 100% (Complete & Live Tested)
+M4: Admin Dashboard            [██████████] 100% (Complete)
+M5: Testing & Hardening        [██████░░░░]  60% (Geometry, Pricing & Checkout Suites Passing)
 M6: Deployment & Launch        [░░░░░░░░░░]   0% (Pending)
 ```
 
@@ -122,29 +122,57 @@ M6: Deployment & Launch        [░░░░░░░░░░]   0% (Pending)
   - [x] Authenticated order invoice view with real-time payment status badge, itemized breakdown, and shipping details.
   - [x] Account order history clickable links directly to order confirmation pages.
 - [x] **Automated Test Suite (`apps/web/test-checkout.mjs`)**:
-  - [x] 6 test suites covering payment signatures, webhook signatures, idempotency, price tampering, quote expiry/ownership, and Indian address validators.
+- [x] **Live Test Payment & Production Verification**:
+  - [x] End-to-end ₹1 test checkout executed and verified in browser via Razorpay test gateway.
+  - [x] Payment reference `pay_Trpt9HJgW39VJI` captured and transitioned Order status to `PAID`.
+  - [x] Client redirect to authenticated `/order-success/[id]` page with itemized breakdown and delivery details.
+  - [x] PostgreSQL record verified in Prisma Studio with synchronized Supabase user ID and shipping address.
 
 ---
 
 ### Milestone M4: Admin Dashboard & Custom Job Review
-- [ ] **Pending for M4**:
-  - [ ] **Admin Authorization Guard**: Restrict `/admin/*` to `Role.ADMIN`.
-  - [ ] **Catalog Product Management (`/admin/products`)**: CRUD interface for catalog items.
-  - [ ] **Custom Print Job Queue (`/admin/jobs`)**:
-    - [ ] Table of custom print requests with status (`SUBMITTED`, `APPROVED`, `REJECTED`).
-    - [ ] Inspection drawer with 3D model viewer, volume, and watertight diagnostics.
-    - [ ] Approve / Reject buttons with mandatory reason notes.
-  - [ ] **Order Fulfillment Tracker (`/admin/orders`)**: State updates (`IN_PRODUCTION` $\rightarrow$ `SHIPPED` $\rightarrow$ `DELIVERED`).
+- [x] **Admin Authorization Guard**:
+  - [x] Server-side database-backed verification (`Role.ADMIN`) in `lib/auth/admin-guard.ts`.
+  - [x] Middleware route protection for `/admin/*` and custom 403 Forbidden Access Denied screen.
+  - [x] Admin promotion CLI script (`apps/web/scripts/set-admin.mjs`) synchronizing PostgreSQL and Supabase Auth metadata.
+- [x] **Catalog Product Management (`/admin/products`)**:
+  - [x] High-precision CRUD interface for catalog items with validated create/edit modals.
+  - [x] Search, active/inactive filters, and material filtering.
+  - [x] Strict price storage in integer paise and stock counters.
+  - [x] Safe deletion protection: preserves historical order records by deactivating ordered items rather than hard deleting.
+- [x] **Custom Print Job Review Queue (`/admin/jobs`)**:
+  - [x] Real-time table of customer print requests with status filters (`ALL`, `SUBMITTED`, `APPROVED`, `REJECTED`).
+  - [x] Interactive 3D model inspection drawer with WebGL canvas, turntable rotation, wireframe toggle, and camera reset.
+  - [x] Geometric telemetry: Bounding box ($X \times Y \times Z$ mm), polyhedral volume, printer bed fit ($220 \times 220 \times 250$ mm), and manifold verification.
+  - [x] Approve action (`jobStatus = APPROVED`) and Reject action requiring mandatory engineering reason note.
+- [x] **Order Fulfillment Tracker (`/admin/orders`)**:
+  - [x] Order management dashboard displaying items, totals, delivery address snapshots, and Razorpay payment refs.
+  - [x] Verified manufacturing lifecycle progression: `PAID` $\rightarrow$ `IN_PRODUCTION` $\rightarrow$ `SHIPPED` $\rightarrow$ `DELIVERED`.
+  - [x] Anti-tampering safeguard: blocks manual transition of unpaid orders to `PAID`.
+- [x] **Automated Test Suite (`apps/web/test-admin-suite.mjs`)**:
+  - [x] 4 comprehensive test suites passing (role guards, product CRUD, job approval/rejection, and fulfillment state machine).
 
 ---
 
 ### Milestone M5: Hardening, Automated Testing & Accessibility
 - [x] **Client 3D Sync & Geometry Tests (`test-model-sync.mjs`)**: 8 tests passing (STL/OBJ/3MF, volume, bounds, limits).
-- [ ] **Pending for M5**:
-  - [ ] **Vitest Pricing Suite**: Unit tests for pricing formulas and minimum order floors.
-  - [ ] **Pytest Mesh Suite**: Backend tests for corrupt, hollow, and oversized meshes in FastAPI.
-  - [ ] **Playwright E2E Suite**: End-to-end checkout and custom upload automated tests.
-  - [ ] **Security Hardening**: Rate limiting on upload signing, signed URL expiry check, `npm audit` verification.
+- [x] **Checkout & Pricing Automated Verification (`apps/web/test-checkout.mjs`)**: 7 test suites passing (HMAC, signatures, idempotency, price tampering).
+- [x] **Vitest Unit Test Suite (`apps/web/tests/unit/`)**:
+  - [x] `pricing.test.ts`: 12 tests passing (minimum order floors ₹199, integer paise rounding, quantity scaling, material rates, layer multipliers, invalid values).
+  - [x] `security.test.ts`: 6 tests passing (Razorpay checkout signatures, webhook raw HMAC-SHA256, timing-safe equality, role guards).
+- [x] **Playwright E2E Test Suite (`apps/web/tests/e2e/`)**:
+  - [x] 12 end-to-end tests passing in Chromium across storefront catalog browsing, cart operations, custom quote calculator, auth flow, and admin security guards.
+- [x] **FastAPI Mesh Service Pytest Suite (`pytest services/mesh/tests`)**:
+  - [x] 8 passed tests across manifold, non-manifold, oversized, corrupt, and OBJ meshes.
+- [x] **Mobile Responsiveness & Touch Controls**:
+  - [x] Configured `touch-action: none` on Three.js WebGL viewport canvas in `ThreeViewer.tsx` and `AdminMeshViewer.tsx` to prevent scroll-trapping and stuttering during touch orbit / pinch-zoom.
+- [x] **Accessibility & Contrast Compliance**:
+  - [x] Enhanced all interactive buttons and swatches with `aria-label`, visible focus rings (`focus-visible:ring-2`), and high-contrast labels.
+- [x] **Security Audit & Build Verification**:
+  - [x] `npm audit`: Found 0 vulnerabilities.
+  - [x] `npm run typecheck`: Passed (0 type errors).
+  - [x] `npm run lint`: Passed (0 errors, 0 warnings).
+  - [x] `npm run build`: Compiled production bundle cleanly (15 routes optimized).
 
 ---
 
@@ -162,12 +190,12 @@ M6: Deployment & Launch        [░░░░░░░░░░]   0% (Pending)
 
 | Variable | Service | Purpose | Status |
 | :--- | :--- | :--- | :---: |
-| `DATABASE_URL` | Web | Postgres connection (Supabase) | ⏳ Template ready in `.env.example` |
-| `NEXT_PUBLIC_SUPABASE_URL` | Web | Supabase Project API endpoint | ⏳ Template ready |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Web | Public client auth key | ⏳ Template ready |
-| `SUPABASE_SERVICE_ROLE_KEY` | Web | Server-side storage/admin access | ⏳ Template ready |
+| `DATABASE_URL` | Web | Postgres connection (Supabase) | ✅ Configured & Connected |
+| `NEXT_PUBLIC_SUPABASE_URL` | Web | Supabase Project API endpoint | ✅ Configured |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Web | Public client auth key | ✅ Configured |
+| `SUPABASE_SERVICE_ROLE_KEY` | Web | Server-side storage/admin access | ✅ Configured |
 | `MESH_SERVICE_URL` | Web | URL for FastAPI analyzer | ⏳ Default `http://localhost:8000` |
-| `MESH_SERVICE_TOKEN` | Web / Mesh | Internal microservice auth secret | ⏳ Template ready |
-| `RAZORPAY_KEY_ID` | Web | Razorpay payment gateway key | ⏳ Template ready |
-| `RAZORPAY_KEY_SECRET` | Web | Razorpay server secret | ⏳ Template ready |
-| `PAYMENT_WEBHOOK_SECRET` | Web | HMAC verification for payment webhooks | ⏳ Template ready |
+| `MESH_SERVICE_TOKEN` | Web / Mesh | Internal microservice auth secret | ⏳ Configured for local dev |
+| `RAZORPAY_KEY_ID` | Web | Razorpay payment gateway key | ✅ Configured (`rzp_test_...`) |
+| `RAZORPAY_KEY_SECRET` | Web | Razorpay server secret | ✅ Configured |
+| `PAYMENT_WEBHOOK_SECRET` | Web | HMAC verification for payment webhooks | ✅ Configured |

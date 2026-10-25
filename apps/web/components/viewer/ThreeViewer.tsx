@@ -187,6 +187,7 @@ export default function ThreeViewer({
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
 
+    renderer.domElement.style.touchAction = "none";
     container.innerHTML = "";
     container.appendChild(renderer.domElement);
 
@@ -619,7 +620,8 @@ export default function ThreeViewer({
                 key={c.name}
                 onClick={() => setSelectedColor(c)}
                 title={`${c.name} (${c.material})`}
-                className={`w-6 h-6 rounded-full border-2 transition-transform ${
+                aria-label={`Select ${c.name} (${c.material}) filament`}
+                className={`w-6 h-6 rounded-full border-2 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
                   selectedColor.name === c.name
                     ? "scale-115 border-white shadow-md ring-2 ring-cyan-500/50"
                     : "border-zinc-700 hover:scale-105"
@@ -637,7 +639,8 @@ export default function ThreeViewer({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsWireframe(!isWireframe)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+            aria-label={isWireframe ? "Disable wireframe mesh mode" : "Enable wireframe mesh mode"}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
               isWireframe
                 ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
                 : "bg-zinc-800/80 border-zinc-700/60 text-zinc-300 hover:bg-zinc-800"
@@ -649,7 +652,8 @@ export default function ThreeViewer({
 
           <button
             onClick={() => setIsAutoRotate(!isAutoRotate)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+            aria-label={isAutoRotate ? "Pause turntable auto-rotation" : "Start turntable auto-rotation"}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
               isAutoRotate
                 ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
                 : "bg-zinc-800/80 border-zinc-700/60 text-zinc-300 hover:bg-zinc-800"
@@ -662,7 +666,8 @@ export default function ThreeViewer({
           <button
             onClick={resetCamera}
             title="Reset Camera View"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs bg-zinc-800/80 border border-zinc-700/60 text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
+            aria-label="Reset camera orientation to default isometric angle"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs bg-zinc-800/80 border border-zinc-700/60 text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Reset View</span>
@@ -671,7 +676,8 @@ export default function ThreeViewer({
           <button
             onClick={toggleFullscreen}
             title={isFullscreen ? "Exit Fullscreen (Esc)" : "Enter Fullscreen"}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+            aria-label={isFullscreen ? "Exit fullscreen view" : "Enter fullscreen view"}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
               isFullscreen
                 ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30"
                 : "bg-zinc-800/80 border-zinc-700/60 text-zinc-300 hover:bg-zinc-800"
