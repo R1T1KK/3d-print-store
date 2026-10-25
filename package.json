@@ -1,0 +1,18 @@
+{
+  "name": "3d-print-store",
+  "version": "0.1.0",
+  "private": true,
+  "description": "3D Print Store — monorepo root. See README.md for setup instructions.",
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "lint": "npm run lint --workspace=apps/web",
+    "typecheck": "npm run typecheck --workspace=apps/web",
+    "test": "npm run test --workspace=apps/web",
+    "mesh:dev": "uvicorn app.main:app --reload --port 8000",
+    "mesh:test": "pytest services/mesh/tests -v"
+  },
+  "workspaces": [
+    "apps/web"
+  ]
+}

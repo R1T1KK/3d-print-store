@@ -1,0 +1,160 @@
+// This is your Prisma schema file.
+// Source of Truth: SPEC.md Section 6 — Data Model
+// DO NOT modify this schema without proposing the exact diff first (see AGENTS.md §1.2).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enumerations
+// ---------------------------------------------------------------------------
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum ModelStatus {
+  PENDING
+  VALID
+  INVALID
+}
+
+enum JobStatus {
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  IN_PRODUCTION
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+
+  addresses Address[]
+  models    CustomModel[]
+  orders    Order[]
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id])
+  line1      String
+  line2      String?
+  city       String
+  state      String
+  postalCode String
+  country    String
+  phone      String?
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  // Stored in smallest currency unit (paise for INR). See SPEC.md §7.
+  basePrice   Int
+  currency    String   @default("INR")
+  stock       Int      @default(0)
+  // Storage key or public path for GLB/STL preview model.
+  modelUrl    String?
+  images      String[]
+  // Offered materials for this catalog product (e.g. ["PLA", "PETG"]).
+  materials   String[]
+  active      Boolean  @default(true)
+}
+
+model CustomModel {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  // Private storage key — NEVER a public URL. Served via signed URLs only.
+  fileKey      String
+  fileName     String
+  fileSize     Int
+  status       ModelStatus @default(PENDING)
+  // Populated by the FastAPI mesh analysis service (M2).
+  volumeMm3    Float?
+  sizeXmm      Float?
+  sizeYmm      Float?
+  sizeZmm      Float?
+  isWatertight Boolean?
+  // Full mesh diagnostics JSON from trimesh (M2).
+  meshReport   Json?
+  createdAt    DateTime    @default(now())
+
+  quotes Quote[]
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  modelId     String
+  model       CustomModel @relation(fields: [modelId], references: [id])
+  material    String
+  color       String
+  infillPct   Int
+  layerHeight Float
+  quantity    Int         @default(1)
+  // Stored in smallest currency unit (paise). Computed server-side; see SPEC.md §7.
+  priceTotal  Int
+  // Full pricing breakdown JSON: material_cost, machine_cost, setup_fee, margin.
+  breakdown   Json
+  expiresAt   DateTime
+  jobStatus   JobStatus   @default(SUBMITTED)
+  // Admin note written when approving or rejecting the job (required on REJECTED).
+  adminNote   String?
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  status     OrderStatus @default(PENDING_PAYMENT)
+  // Stored in smallest currency unit (paise).
+  total      Int
+  currency   String
+  // Razorpay payment reference — UNIQUE to enforce idempotent webhook processing.
+  // See SECURITY.md §4.2.
+  paymentRef String?     @unique
+  // Shipping address snapshot captured at checkout (not a FK to preserve history).
+  addressJson Json
+  createdAt  DateTime    @default(now())
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id       String @id @default(cuid())
+  orderId  String
+  order    Order  @relation(fields: [orderId], references: [id])
+  // Exactly ONE of productId or quoteId must be set.
+  // Enforced in application code and API tests — see SPEC.md §6 note.
+  productId String?
+  quoteId   String?
+  quantity  Int
+  // Stored in smallest currency unit (paise). Captured at order time.
+  unitPrice Int
+}
